@@ -1,5 +1,5 @@
 /* CoachTomAsh Studio: cache only app files, not personal practice data. */
-const CACHE_NAME = 'coachtomash-studio-assets-v1-1';
+const CACHE_NAME = 'coachtomash-studio-assets-v1-1-1';
 const APP_FILES = [
   './',
   './index.html',
@@ -29,8 +29,7 @@ self.addEventListener('fetch', event => {
       fetch(event.request).then(response => {
         if (response.ok) {
           const copy = response.clone();
-          event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put('./index.html',
-  './v11-enhancements.js', copy)));
+          event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy)));
         }
         return response;
       }).catch(() => caches.match('./index.html'))

@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.1: offline animation timeline + native GIF writer.
+/* CoachTomAsh Studio v1.1.1: offline animation timeline + native GIF writer.
    Additive upgrade: intentionally uses the original localStorage key and drill format.
    No external services, dependencies, CDNs, or third-party scripts. */
 'use strict';
@@ -7,6 +7,7 @@
   const slider = document.getElementById('timelineScrub');
   const label = document.getElementById('timelineLabel');
   const speedControl = document.getElementById('speedControl');
+  const gifFpsControl = document.getElementById('gifFps');
   const loopControl = document.getElementById('loopAnimation');
   const hint = document.getElementById('animationHint');
   const gifButton = document.getElementById('exportGif');
@@ -24,6 +25,7 @@
   const numberOfFrames = () => current().frames.length;
   const limit = () => Math.max(0, numberOfFrames() - 1);
   const speed = () => Number(speedControl.value) || 1;
+  const exportFPS = () => Number(gifFpsControl?.value) || 20;
 
   // Always derive animation frames from the saved positions. No animation state is
   // written into the practice library and older JSON backups remain valid.
@@ -140,6 +142,10 @@
     }
   }, {capture: true});
 
+  gifFpsControl?.addEventListener('change', () => {
+    hint.textContent = `GIF export: ${exportFPS()} FPS at ${speed()}× movement speed. Higher FPS is smoother but creates larger files.`;
+  });
+
   // ---- GIF89a encoder (RGB332 palette, LZW, no external library) ----
   // GIF is limited to 256 colours. RGB332 gives predictable local/offline output.
   class ByteWriter {
@@ -215,9 +221,9 @@
   }
 
   class GifWriter {
-    constructor(width, height, delay) {
+    constructor(width, height, fps) {
       this.output = new ByteWriter();
-      this.w = width; this.h = height; this.delay = delay;
+      this.w = width; this.h = height; this.fps = fps; this.frameCount = 0;
       const o = this.output;
       o.str('GIF89a');
       o.word(width); o.word(height);
@@ -229,7 +235,13 @@
     frame(pixels) {
       const o = this.output;
       o.bytes(0x21, 0xF9, 4, 0x08); // disposal=2, no transparency
-      o.word(this.delay); o.bytes(0, 0);
+      // GIF stores delays in 1/100 second. A fixed 3 cs delay would
+      // incorrectly turn 30 FPS into 33.3 FPS. Alternate 3/3/4 cs so the
+      // cumulative playback duration averages exactly 30 FPS.
+      const startCS = Math.round(this.frameCount * 100 / this.fps);
+      const endCS = Math.round((this.frameCount + 1) * 100 / this.fps);
+      o.word(Math.max(2, endCS - startCS)); o.bytes(0, 0);
+      this.frameCount++;
       o.bytes(0x2C); o.word(0); o.word(0); o.word(this.w); o.word(this.h); o.bytes(0);
       o.bytes(8); // 8-bit initial LZW code size
       const compressed = lzwEncode(pixels);
@@ -283,12 +295,17 @@
     try {
       const ctx = canvas.getContext('2d', {willReadFrequently:true});
       if (!ctx) throw new Error('Canvas rendering is unavailable on this device');
-      const fps = 8;
+      const fps = exportFPS();
       const transitions = drill.frames.length - 1;
-      const perSegment = Math.min(Math.max(3, Math.round(1.6 * fps / speed())), Math.max(2, Math.floor(152 / transitions)));
-      if (transitions * perSegment + 5 > 170) throw new Error('Too many frames to export at once. Split this practice into shorter animations.');
-      const writer = new GifWriter(canvas.width, canvas.height, Math.round(100 / fps));
-      const total = transitions * perSegment + 5;
+      // Preserve the original animation length regardless of export FPS.
+      // Never silently reduce the number of frames, which makes motion faster.
+      const perSegment = Math.max(2, Math.round(TRANSITION_MS / 1000 * fps / speed()));
+      const holdFrames = Math.max(2, Math.round(fps * 0.5));
+      const total = transitions * perSegment + holdFrames;
+      // Bound memory/CPU for iPad. Recommend lower FPS rather than
+      // quietly shortening a user's full animation.
+      if (total > 360) throw new Error(`This would render ${total} frames. Select a lower GIF FPS, increase playback speed, or split the practice into shorter animations (360-frame limit).`);
+      const writer = new GifWriter(canvas.width, canvas.height, fps);
       let n = 0;
       const pitchType = drill.pitchType || 'full';
       for (let i = 0; i < transitions; i++) {
@@ -303,16 +320,16 @@
           }
         }
       }
-      for (let j = 0; j < 5; j++) {
+      for (let j = 0; j < holdFrames; j++) {
         writer.frame(await drawExportFrame(ctx, drill.frames[drill.frames.length - 1], pitchType, canvas));
       }
       const result = writer.finish();
       if (gifUrl) URL.revokeObjectURL(gifUrl);
       gifBlob = result;
-      gifFilename = `CoachTomAsh_${safeFilename(drill.name)}_Animation.gif`;
+      gifFilename = `CoachTomAsh_${safeFilename(drill.name)}_${fps}FPS.gif`;
       gifUrl = URL.createObjectURL(result);
       document.getElementById('gifPreview').src = gifUrl;
-      document.getElementById('gifInfo').textContent = `${drill.frames.length} keyframes · ${fps} fps · ${(result.size / 1048576).toFixed(1)} MB. Save the file, or share it using the iPad share sheet.`;
+      document.getElementById('gifInfo').textContent = `${drill.frames.length} keyframes · ${fps} FPS · ${(result.size / 1048576).toFixed(1)} MB. Save the file, or share it using the iPad share sheet.`;
       const canShare = typeof navigator.canShare === 'function' && navigator.canShare({files:[new File([gifBlob],gifFilename,{type:'image/gif'})]});
       document.getElementById('shareGif').hidden = !canShare;
       if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
