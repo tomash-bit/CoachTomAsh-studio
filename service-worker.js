@@ -1,5 +1,5 @@
 /* CoachTomAsh Studio: cache only app files, not personal practice data. */
-const CACHE_NAME = 'coachtomash-studio-assets-v1-2';
+const CACHE_NAME = 'coachtomash-studio-assets-v1-2-1';
 const APP_FILES = [
   './',
   './index.html',

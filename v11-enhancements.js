@@ -255,7 +255,7 @@
   }
 
   async function drawExportFrame(ctx, diagram, pitchType, canvas) {
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650">' +
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="728" viewBox="-60 -39 1120 728">' +
       draw(diagram.objects, diagram.paths, pitchType, null) + '</svg>';
     const url = URL.createObjectURL(new Blob([svg], {type:'image/svg+xml;charset=utf-8'}));
     try {
