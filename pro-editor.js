@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.6 | Pro Diagram Designer
+/* CoachTomAsh Studio v1.6.1 | Curved arrow and formation corrections
  * Additive properties: object.scale (goals), object.groupId, path.curved/cx/cy.
  * Older drills do not need migration. Everything remains in the v1 storage schema.
  */
@@ -8,6 +8,8 @@
   const goalSlider = document.getElementById('goalScale');
   const goalValue = document.getElementById('goalScaleValue');
   const curvePanel = document.getElementById('curvePanel');
+  const bendSlider = document.getElementById('curveBend');
+  const bendValue = document.getElementById('curveBendValue');
   let gesture = null;
   const getObject = () => currentFrame().objects.find(o => o.id === selectedId);
   const getPath = () => currentFrame().paths.find(p => p.id === selectedPath);
@@ -15,12 +17,43 @@
   const goalScale = o => clamp(Number(o?.scale) || 1, .5, 2.5);
   const bound = point => ({x: clamp(point.x, 0, 100), y: clamp(point.y, 0, 100)});
 
+  // SVG uses a quadratic Bezier. Its actual midpoint at t=.5 is
+  // 25% start + 50% quadratic control + 25% end, NOT the control point.
+  // The iPad bend handle must sit ON the rendered curve, so inverse that
+  // relation to put the curve through the position where the coach drags.
+  function visibleMidpoint(path) {
+    const c = (Number.isFinite(Number(path.cx)) && Number.isFinite(Number(path.cy)))
+      ? {x:Number(path.cx),y:Number(path.cy)}
+      : {x:(path.x1+path.x2)/2,y:(path.y1+path.y2)/2};
+    return {x:.25*path.x1+.5*c.x+.25*path.x2,
+            y:.25*path.y1+.5*c.y+.25*path.y2};
+  }
+  function setVisibleMidpoint(path, point) {
+    path.curved = true;
+    path.cx = 2*point.x-.5*(path.x1+path.x2);
+    path.cy = 2*point.y-.5*(path.y1+path.y2);
+  }
+  function curveNormal(path) {
+    const a=XY({x:path.x1,y:path.y1}), b=XY({x:path.x2,y:path.y2});
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
+    return {nx:-dy/len,ny:dx/len,len,center:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}};
+  }
+  function setBend(path, pixels) {
+    const n=curveNormal(path);
+    const target={x:n.center.x+n.nx*pixels,y:n.center.y+n.ny*pixels};
+    setVisibleMidpoint(path,{x:(target.x-70)/8.6,y:(target.y-65)/5.2});
+  }
+  function getBend(path) {
+    if(!path?.curved)return 0;
+    const n=curveNormal(path),m=XY(visibleMidpoint(path));
+    return (m.x-n.center.x)*n.nx+(m.y-n.center.y)*n.ny;
+  }
   function defaultControl(path) {
-    const vx = path.x2 - path.x1, vy = path.y2 - path.y1;
-    const length = Math.hypot(vx * 8.6, vy * 5.2) || 1;
-    const bend = Math.min(18, Math.max(7, length / 20));
-    return bound({x: (path.x1 + path.x2) / 2 - vy * 5.2 / length * bend,
-                  y: (path.y1 + path.y2) / 2 + vx * 8.6 / length * bend});
+    // Clearly visible by default: the arc crosses a point 60-105 SVG pixels
+    // away from the chord, rather than placing an off-curve dot at its control.
+    const n=curveNormal(path), pixels=Math.min(105,Math.max(60,n.len*.22));
+    const adjusted={...path};setBend(adjusted,pixels);
+    return {x:adjusted.cx,y:adjusted.cy};
   }
   function updatePanels() {
     const o = getObject(), p = getPath();
@@ -32,6 +65,9 @@
     curvePanel.hidden = !p;
     document.getElementById('curveConvert').disabled = !p || !!p.curved;
     document.getElementById('curveStraight').disabled = !p || !p.curved;
+    bendSlider.disabled = !p || !p.curved;
+    bendSlider.value = String(Math.round(clamp(getBend(p), -160, 160) / 5) * 5);
+    bendValue.textContent = p?.curved ? `${Math.round(getBend(p))} px` : 'Straight';
   }
   const basePanel = updateObjectPanel;
   updateObjectPanel = function (...args) {basePanel(...args);updatePanels();};
@@ -43,7 +79,7 @@
     if (preview || playing || tool !== 'select') return;
     const p = getPath();
     if (!p || !p.curved) return;
-    const points = {start: XY({x:p.x1,y:p.y1}), control: XY({x:p.cx,y:p.cy}), end: XY({x:p.x2,y:p.y2})};
+    const points = {start: XY({x:p.x1,y:p.y1}), control: XY(visibleMidpoint(p)), end: XY({x:p.x2,y:p.y2})};
     const m = points.control;
     const a = points.start, b = points.end;
     pitch.insertAdjacentHTML('beforeend',
@@ -81,6 +117,22 @@
   }
   document.getElementById('curveConvert').onclick=()=>curveSelected(true);
   document.getElementById('curveStraight').onclick=()=>curveSelected(false);
+  function applyBend(value) {
+    const p=getPath();if(!p || !p.curved)return;
+    setBend(p,clamp(Number(value),-160,160));
+    bendValue.textContent=`${Math.round(getBend(p))} px`;
+    commit();renderPitch();
+  }
+  bendSlider.addEventListener('pointerdown',()=>{if(getPath()?.curved)snapshot();});
+  bendSlider.addEventListener('keydown',()=>{if(getPath()?.curved)snapshot();});
+  bendSlider.addEventListener('input',e=>applyBend(e.target.value));
+  document.getElementById('curveReverse').addEventListener('click',()=>{
+    const p=getPath();if(!p?.curved)return;snapshot();applyBend(Math.abs(getBend(p))<5?-80:-getBend(p));updatePanels();
+  });
+  document.getElementById('curveMore').addEventListener('click',()=>{
+    const p=getPath();if(!p?.curved)return;snapshot();
+    const bend=getBend(p);applyBend(clamp(bend+(bend<0?-40:40),-160,160));updatePanels();
+  });
 
   function curvedPreview(start,end,type) {
     const shape={x1:start.x,y1:start.y,x2:end.x,y2:end.y,type,curved:true};
@@ -117,7 +169,7 @@
     else {
       const line=currentFrame().paths.find(x=>x.id===gesture.pathId);
       if(line) {
-        if(gesture.handle==='control'){line.cx=p.x;line.cy=p.y;}
+        if(gesture.handle==='control'){setVisibleMidpoint(line,p);bendSlider.value=String(Math.round(clamp(getBend(line),-160,160)/5)*5);bendValue.textContent=`${Math.round(getBend(line))} px`;}
         if(gesture.handle==='start'){line.x1=p.x;line.y1=p.y;}
         if(gesture.handle==='end'){line.x2=p.x;line.y2=p.y;}
         gesture.changed=true;renderPitch();
@@ -147,8 +199,8 @@
 
   // One action creates a ready-to-edit 4-3-3, but never overwrites existing objects.
   const positions = [
-    ['GK',9,50],['LB',28,14],['LCB',24,38],['RCB',24,62],['RB',28,86],
-    ['8',49,27],['6',44,50],['10',49,73],['LW',77,15],['9',81,50],['RW',77,85]
+    ['1',9,50],['3',28,14],['4',24,38],['5',24,62],['2',28,86],
+    ['8',49,27],['6',44,50],['10',49,73],['11',77,15],['9',81,50],['7',77,85]
   ];
   document.getElementById('add433').onclick=()=>{
     if(playing)stopPlayback();
@@ -157,8 +209,8 @@
       currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:'#1a2b5f'});
     }
     selectedId=null;selectedPath=null;commit();refresh();
-    toast('4-3-3 created with 11 editable players');
+    toast('4-3-3 created with numbered shirts 1–11');
   };
-  window.CTAProEditor={defaultControl,goalScale,positions};
+  window.CTAProEditor={defaultControl,goalScale,positions,visibleMidpoint,setVisibleMidpoint,getBend,setBend};
   updatePanels();
 })();

@@ -1,6 +1,6 @@
 /* CoachTomAsh Studio 1.5: versioned offline application shell.
    User practices remain in localStorage/IndexedDB, never in Cache Storage. */
-const CACHE_NAME = 'coachtomash-studio-assets-v1-6-0';
+const CACHE_NAME = 'coachtomash-studio-assets-v1-6-1';
 const APP_FILES = [
  './', './index.html', './app.css', './coach-tomash-logo.png',
  './storage-engine.js', './app-core.js', './pwa-install.js',

@@ -191,3 +191,9 @@
 #formationPanel .btn{white-space:normal;min-height:42px;text-align:left;}
 .curve-handle{cursor:grab;touch-action:none;}
 #curvePanel{border-color:#b7cae7;}
+
+/* v1.6.1: visible curve-bend controls and touch affordance */
+#curvePanel label{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#curveBendValue{font-weight:700;color:#1a2b5f}
+#curvePanel .btn{touch-action:manipulation}
+.curve-handle[data-curve-handle="control"]{filter:drop-shadow(0 1px 3px #142850);cursor:grab}

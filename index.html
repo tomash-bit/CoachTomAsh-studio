@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CoachTomAsh Studio v1.6 | Football Session Planner</title>
+<title>CoachTomAsh Studio v1.6.1 | Football Session Planner</title>
 <meta name="theme-color" content="#1A2B5F">
 <meta name="description" content="CoachTomAsh Studio: design, animate and plan football coaching practices in your own local-first workspace.">
 <link rel="icon" type="image/png" href="./icons/icon-192.png">
@@ -23,7 +23,7 @@
 <body>
 <header class="app-head">
   <div class="brand"><div class="brand-lockup"><img class="brand-logo" src="./coach-tomash-logo.png" alt="CoachTomAsh logo"></div><div class="brand-details"><strong>STUDIO <span class="brand-chip">FOOTBALL PLANNER</span></strong><small>DESIGN • ANIMATE • PLAN • REFLECT</small></div></div>
-  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.6 • local first</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
+  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.6.1 • local first</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
 </header>
 <nav class="tabs" aria-label="Main navigation"><button class="tab active" data-tab="design">◈ Drill designer</button><button class="tab" data-tab="library">▦ My practice library</button><button class="tab" data-tab="session">▤ Session builder</button><button class="tab" data-tab="curriculum">▦ 10-week curriculum</button></nav>
 <section class="panel active" id="panel-design">
@@ -80,12 +80,15 @@
     <div class="pro-panel" id="curvePanel" hidden>
       <div class="subheading">Selected arrow</div>
       <div class="pro-inline"><button class="btn small" type="button" id="curveConvert">Make curved</button><button class="btn small" type="button" id="curveStraight">Straighten</button></div>
-      <div class="hint">Drag the yellow handle to reshape a curved arrow, or drag either end to reposition it.</div>
+      <label for="curveBend">Visible bend <strong id="curveBendValue">Straight</strong></label>
+      <input id="curveBend" type="range" min="-160" max="160" step="5" value="0" disabled aria-label="Adjust selected arrow curvature">
+      <div class="pro-inline"><button class="btn small" type="button" id="curveMore">↷ Stronger bend</button><button class="btn small" type="button" id="curveReverse">↶ Reverse curve</button></div>
+      <div class="hint">The yellow handle sits directly <b>on the curve</b>. Drag it to shape the arrow. The slider gives more precise control; straight arrows need “Make curved” first.</div>
     </div>
     <div class="pro-panel" id="formationPanel">
       <div class="subheading">Formation templates</div>
       <button class="btn small" id="add433" type="button">＋ Add 4-3-3 (11 players)</button>
-      <div class="hint">Adds eleven individually movable, labelled player markers to the current frame.</div>
+      <div class="hint">Adds numbered shirts <b>1–11</b> (including goalkeeper 1), all independently movable and editable.</div>
     </div>
     <div class="multi-toolbar"><button class="btn small" id="multiSelectMode" type="button" aria-pressed="false">☑ Multi-select</button><span class="hint" id="multiSelectCount">0 selected</span></div>
     <div class="multi-tools" id="multiSelectPanel" hidden>
@@ -104,7 +107,7 @@
     <div class="canvas-top"><div><h2 id="canvasTitle">Practice designer</h2><small id="canvasSub">Design your practice in 2D</small></div><div class="canvas-tools"><button class="btn small" id="exportSvg">SVG</button><button class="btn small" id="exportPng">PNG</button><button class="btn small dark" id="saveBtn">✓ Save</button></div></div>
     <div class="pitch-wrap"><svg class="pitch-svg select-mode" id="pitch" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -39 1120 728" aria-label="Interactive football pitch and practice diagram"></svg></div>
     <div class="helper" id="editorHelp">Select a tool, then tap or drag on the pitch. On tablets, use one finger to position players.</div>
-    <div class="frames frames-v11"><div class="frames-row"><div><b style="font-size:13px">Animation studio <span class="version-chip">v1.6</span></b><div class="hint">Duplicate a frame, reposition players, then preview or export their movement.</div></div><div class="frames-buttons"><button class="btn small" id="prevFrame" title="Previous frame">◀</button><button class="btn small" id="nextFrame" title="Next frame">▶</button><button class="btn small" id="addFrame">+ Frame</button><button class="btn small" id="removeFrame">− Frame</button></div></div>
+    <div class="frames frames-v11"><div class="frames-row"><div><b style="font-size:13px">Animation studio <span class="version-chip">v1.6.1</span></b><div class="hint">Duplicate a frame, reposition players, then preview or export their movement.</div></div><div class="frames-buttons"><button class="btn small" id="prevFrame" title="Previous frame">◀</button><button class="btn small" id="nextFrame" title="Next frame">▶</button><button class="btn small" id="addFrame">+ Frame</button><button class="btn small" id="removeFrame">− Frame</button></div></div>
 <div class="frame-dots" id="frameDots"></div>
 <div class="timeline-ui"><div class="timeline-controls"><button class="btn small primary" id="playBtn" type="button" aria-label="Play animation">▶ Play</button><button class="btn small" id="restartAnimation" type="button" aria-label="Restart animation">↺ Restart</button><label class="timeline-speed" for="speedControl">Speed <select id="speedControl" class="field" aria-label="Animation speed"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label class="timeline-speed" for="gifFps">GIF FPS <select id="gifFps" class="field" aria-label="GIF export frames per second"><option value="10">10 · Small</option><option value="20" selected>20 · Smooth</option><option value="30">30 · High</option></select></label><label class="timeline-loop"><input type="checkbox" id="loopAnimation"> Loop</label><button id="exportGif" class="btn small dark" type="button">⬇ Animated GIF</button></div>
 <div class="scrubber-row"><label for="timelineScrub">Timeline</label><input type="range" id="timelineScrub" min="0" max="1000" step="1" value="0" aria-label="Scrub animation frames"><span id="timelineLabel" aria-live="polite">1 / 2</span></div>
@@ -133,7 +136,7 @@
   </aside>
 </div>
 </section>
-<section class="panel" id="panel-library"><div class="main-list v14-library"><div class="list-toolbar"><div><h2>My practice library <span class="version-chip">v1.6</span></h2><div class="hint">Find, tag and reuse practices across your coaching programme.</div></div><button id="libraryNew" class="btn primary">+ Create practice</button></div>
+<section class="panel" id="panel-library"><div class="main-list v14-library"><div class="list-toolbar"><div><h2>My practice library <span class="version-chip">v1.6.1</span></h2><div class="hint">Find, tag and reuse practices across your coaching programme.</div></div><button id="libraryNew" class="btn primary">+ Create practice</button></div>
   <div class="card card-pad v14-filter-panel"><div class="v14-filter-title"><strong>Search & filter practices</strong><span class="hint" id="libraryCount">All practices</span></div>
     <div class="v14-filter-grid">
       <div class="v14-filter-search"><label for="searchDrills">Search titles, coaching detail and tags</label><input id="searchDrills" class="field" placeholder="Search your library..."></div>
@@ -150,7 +153,7 @@
   <div class="library-grid" id="drillGrid"></div>
 </div></section>
 <section class="panel" id="panel-session"><div class="main-list">
-  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.6</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
+  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.6.1</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
   <div class="session-inline-callout" style="margin:12px 0">📚 <b>CoachTomAsh starter library:</b> 10 editable sessions and 30 example practices (U13–U16). Tap <b>Add 10 starter sessions</b> once to <b>merge</b> them with your existing library. No existing sessions are replaced.</div>
   <div class="session-workspace">
     <div class="card card-pad">
@@ -179,7 +182,7 @@
   <div class="session-library-head"><h3>My saved sessions</h3><span class="hint" id="sessionLibraryCount"></span></div>
   <div id="sessionSavedLibrary" class="session-catalogue-grid"></div>
 </div></section>
-<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.6</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
+<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.6.1</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
   <div class="card card-pad v14-curr-toolbar"><div class="v14-curr-controls"><div><label for="currAge">Age group</label><select id="currAge" class="field"><option value="">All ages</option><option>U9</option><option>U10</option><option>U11</option><option>U12</option><option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option><option>Senior</option></select></div><div><label for="currBlock">Programme block</label><select id="currBlock" class="field"><option value="1">Block 1</option><option value="2">Block 2</option><option value="3">Block 3</option><option value="4">Block 4</option></select></div><div class="v14-curr-guidance">Select a week to place the <b>currently open session</b>. Individual practices appear when tagged in the Drill designer.</div></div>
     <div class="v14-curr-stats" id="currSummary"></div></div>
   <div id="curriculumGrid" class="v14-week-grid"></div>
