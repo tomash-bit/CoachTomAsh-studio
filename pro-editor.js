@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.6.2 | Formation colour follows selected swatch
+/* CoachTomAsh Studio v1.6.3 | Explicit colour selector and formation recolour
  * Additive properties: object.scale (goals), object.groupId, path.curved/cx/cy.
  * Older drills do not need migration. Everything remains in the v1 storage schema.
  */
@@ -202,33 +202,77 @@
     ['1',9,50],['3',28,14],['4',24,38],['5',24,62],['2',28,86],
     ['8',49,27],['6',44,50],['10',49,73],['11',77,15],['9',81,50],['7',77,85]
   ];
-  // playerColor is set by the existing Player colour swatches in app-core.js.
-  // Do not hard-code navy: a formation should use the coach's current choice.
+  // A visible, independent formation colour prevents ambiguous swatch selection
+  // and guarantees that an older cached app-core script cannot force navy.
+  const colourSelect = document.getElementById('formationColorSelect');
   const formationColourLabel = document.getElementById('formationColourLabel');
   const formationColourSwatch = document.getElementById('formationColourSwatch');
   const colourNames = new Map([
     ['#1a2b5f','Navy'], ['#c8102e','Crimson'], ['#ffffff','White'],
     ['#ffcf48','Yellow'], ['#229be5','Blue']
   ]);
-  function updateFormationColourPreview() {
-    // Use the same source of truth as manually placed home players.
-    const chosen = playerColor;
-    if (formationColourSwatch) formationColourSwatch.style.backgroundColor = chosen;
-    if (formationColourLabel) formationColourLabel.textContent = colourNames.get(chosen.toLowerCase()) || chosen;
+  const FORMATION_COLOR_KEY = 'coachtomash-formation-colour';
+  function validColour(c) {
+    const hex=String(c||'').toLowerCase();
+    return colourNames.has(hex) ? hex : '#1a2b5f';
   }
-  document.getElementById('swatches').addEventListener('click', updateFormationColourPreview);
+  let formationChoice = validColour(playerColor);
+  try { const saved=localStorage.getItem(FORMATION_COLOR_KEY); if(saved)formationChoice=validColour(saved); } catch(e) {}
+  function showColour(c) {
+    formationChoice=validColour(c);
+    colourSelect.value=formationChoice;
+    formationColourSwatch.style.backgroundColor=formationChoice;
+    formationColourLabel.textContent=colourNames.get(formationChoice);
+    try {localStorage.setItem(FORMATION_COLOR_KEY,formationChoice);} catch(e) {}
+  }
+  // Swatch selection updates both individual-player colour and formation colour.
+  // Handle this directly: it works even when a previous object was selected.
+  document.getElementById('swatches').addEventListener('click', e => {
+    const b=e.target.closest('button[data-color]');
+    if(b)showColour(b.dataset.color);
+  });
+  colourSelect.addEventListener('change', () => {
+    showColour(colourSelect.value);
+    playerColor=formationChoice; // New manually placed players match the formation choice.
+    updateObjectPanel();
+  });
+  showColour(formationChoice);
   document.getElementById('add433').onclick=()=>{
     if(playing)stopPlayback();
-    const chosenColor = playerColor;
+    // Read the visible selector at the exact moment the coach presses Add.
+    // The playerColor variable is intentionally not the source of truth here.
+    const chosenColor=validColour(colourSelect.value);
+    showColour(chosenColor);
     snapshot();
+    const formationId=uid();
     for(const [label,x,y] of positions) {
-      currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:chosenColor});
+      currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:chosenColor,formationId,formationType:'4-3-3'});
     }
     selectedId=null;selectedPath=null;commit();refresh();
-    updateFormationColourPreview();
-    toast('4-3-3 created in '+(colourNames.get(chosenColor.toLowerCase()) || chosenColor)+' with shirts 1–11');
+    toast('Added eleven '+colourNames.get(chosenColor)+' shirts (1–11)');
   };
-  updateFormationColourPreview();
+  document.getElementById('recolour433').onclick=()=>{
+    if(playing)stopPlayback();
+    const chosenColor=validColour(colourSelect.value);
+    const f=currentFrame();
+    // Safely prefer the most recently added tagged formation.
+    const lastTagged=[...f.objects].reverse().find(o=>o.type==='player'&&o.formationId&&o.formationType==='4-3-3');
+    let targets=lastTagged?f.objects.filter(o=>o.formationId===lastTagged.formationId&&o.type==='player'):[];
+    if(!targets.length){
+      // Legacy v1.6 formations were untagged. Only recolour if exactly one
+      // complete 1–11 set is present. Never recolour unrelated practice players.
+      const numbered=f.objects.filter(o=>o.type==='player'&&/^(?:[1-9]|10|11)$/.test(String(o.label)));
+      if(numbered.length===11&&new Set(numbered.map(o=>String(o.label))).size===11)targets=numbered;
+    }
+    if(targets.length!==11){
+      toast('No single 4-3-3 detected here. Add a new 4-3-3 or open a frame with eleven numbered shirts.');
+      return;
+    }
+    snapshot();
+    for(const o of targets)o.color=chosenColor;
+    commit();refresh();
+    toast('Recoloured eleven 4-3-3 shirts '+colourNames.get(chosenColor));
+  };
   window.CTAProEditor={defaultControl,goalScale,positions,visibleMidpoint,setVisibleMidpoint,getBend,setBend};
   updatePanels();
 })();
