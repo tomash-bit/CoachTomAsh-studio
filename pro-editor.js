@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.6.1 | Curved arrow and formation corrections
+/* CoachTomAsh Studio v1.6.2 | Formation colour follows selected swatch
  * Additive properties: object.scale (goals), object.groupId, path.curved/cx/cy.
  * Older drills do not need migration. Everything remains in the v1 storage schema.
  */
@@ -202,15 +202,33 @@
     ['1',9,50],['3',28,14],['4',24,38],['5',24,62],['2',28,86],
     ['8',49,27],['6',44,50],['10',49,73],['11',77,15],['9',81,50],['7',77,85]
   ];
+  // playerColor is set by the existing Player colour swatches in app-core.js.
+  // Do not hard-code navy: a formation should use the coach's current choice.
+  const formationColourLabel = document.getElementById('formationColourLabel');
+  const formationColourSwatch = document.getElementById('formationColourSwatch');
+  const colourNames = new Map([
+    ['#1a2b5f','Navy'], ['#c8102e','Crimson'], ['#ffffff','White'],
+    ['#ffcf48','Yellow'], ['#229be5','Blue']
+  ]);
+  function updateFormationColourPreview() {
+    // Use the same source of truth as manually placed home players.
+    const chosen = playerColor;
+    if (formationColourSwatch) formationColourSwatch.style.backgroundColor = chosen;
+    if (formationColourLabel) formationColourLabel.textContent = colourNames.get(chosen.toLowerCase()) || chosen;
+  }
+  document.getElementById('swatches').addEventListener('click', updateFormationColourPreview);
   document.getElementById('add433').onclick=()=>{
     if(playing)stopPlayback();
+    const chosenColor = playerColor;
     snapshot();
     for(const [label,x,y] of positions) {
-      currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:'#1a2b5f'});
+      currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:chosenColor});
     }
     selectedId=null;selectedPath=null;commit();refresh();
-    toast('4-3-3 created with numbered shirts 1–11');
+    updateFormationColourPreview();
+    toast('4-3-3 created in '+(colourNames.get(chosenColor.toLowerCase()) || chosenColor)+' with shirts 1–11');
   };
+  updateFormationColourPreview();
   window.CTAProEditor={defaultControl,goalScale,positions,visibleMidpoint,setVisibleMidpoint,getBend,setBend};
   updatePanels();
 })();
