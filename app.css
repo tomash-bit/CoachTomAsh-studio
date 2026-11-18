@@ -197,3 +197,15 @@
 #curveBendValue{font-weight:700;color:#1a2b5f}
 #curvePanel .btn{touch-action:manipulation}
 .curve-handle[data-curve-handle="control"]{filter:drop-shadow(0 1px 3px #142850);cursor:grab}
+
+/* v1.6.4 formation-versus-formation tools */
+.color-swatches{flex-wrap:wrap;gap:7px}
+.formation-team-card{border:1px solid #cfdaea;border-radius:10px;padding:10px;margin:10px 0;background:#f8faff}
+.formation-team-card.team-away{background:#fff9fa;border-color:#f0d2d8}
+.formation-team-head{display:flex;justify-content:space-between;gap:5px;align-items:center;margin-bottom:10px;color:#1a2b5f;font-size:13px}
+.formation-team-head span{font-size:11px;color:#69788c;font-weight:600}
+.formation-current{display:flex;align-items:center;gap:5px;font-size:11px;color:#50647f;margin:6px 0 10px}
+.formation-current-dot{width:15px;height:15px;flex:0 0 15px;background:#1a2b5f;border:1px solid #a9b9ce;border-radius:50%;display:inline-block}
+.formation-actions{display:flex;gap:6px;flex-wrap:wrap}
+.formation-both{display:block;width:100%;background:#eef3fb;color:#1a2b5f;border-color:#bfcce1;text-align:center}
+.formation-help{margin-top:9px}

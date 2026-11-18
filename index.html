@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CoachTomAsh Studio v1.6.3 | Football Session Planner</title>
+<title>CoachTomAsh Studio v1.6.4 | Football Session Planner</title>
 <meta name="theme-color" content="#1A2B5F">
 <meta name="description" content="CoachTomAsh Studio: design, animate and plan football coaching practices in your own local-first workspace.">
 <link rel="icon" type="image/png" href="./icons/icon-192.png">
@@ -23,7 +23,7 @@
 <body>
 <header class="app-head">
   <div class="brand"><div class="brand-lockup"><img class="brand-logo" src="./coach-tomash-logo.png" alt="CoachTomAsh logo"></div><div class="brand-details"><strong>STUDIO <span class="brand-chip">FOOTBALL PLANNER</span></strong><small>DESIGN • ANIMATE • PLAN • REFLECT</small></div></div>
-  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.6.3 • local first</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
+  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.6.4 • local first</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
 </header>
 <nav class="tabs" aria-label="Main navigation"><button class="tab active" data-tab="design">◈ Drill designer</button><button class="tab" data-tab="library">▦ My practice library</button><button class="tab" data-tab="session">▤ Session builder</button><button class="tab" data-tab="curriculum">▦ 10-week curriculum</button></nav>
 <section class="panel active" id="panel-design">
@@ -42,7 +42,7 @@
     </div>
     <div class="subheading">Selected player / object</div>
     <div class="form-row"><label for="objectLabel">Label</label><input class="field" id="objectLabel" maxlength="16" placeholder="Select an object" disabled></div>
-    <div class="form-row"><label>Player colour</label><div class="color-swatches" id="swatches"><button aria-label="Navy" title="Navy" class="swatch" data-color="#1a2b5f" style="background:#1a2b5f"></button><button aria-label="Crimson" title="Crimson" class="swatch" data-color="#c8102e" style="background:#c8102e"></button><button aria-label="White" title="White" class="swatch" data-color="#ffffff" style="background:#ffffff"></button><button aria-label="Yellow" title="Yellow" class="swatch" data-color="#ffcf48" style="background:#ffcf48"></button><button aria-label="Blue" title="Blue" class="swatch" data-color="#229be5" style="background:#229be5"></button></div></div>
+    <div class="form-row"><label>Player colour</label><div class="color-swatches" id="swatches"><button aria-label="Navy" title="Navy" class="swatch" data-color="#1a2b5f" style="background:#1a2b5f"></button><button aria-label="Crimson" title="Crimson" class="swatch" data-color="#c8102e" style="background:#c8102e"></button><button aria-label="White" title="White" class="swatch" data-color="#ffffff" style="background:#ffffff"></button><button aria-label="Yellow" title="Yellow" class="swatch" data-color="#ffcf48" style="background:#ffcf48"></button><button aria-label="Blue" title="Blue" class="swatch" data-color="#229be5" style="background:#229be5"></button><button aria-label="Black" title="Black" class="swatch" data-color="#141923" style="background:#141923"></button><button aria-label="Orange" title="Orange" class="swatch" data-color="#f97316" style="background:#f97316"></button><button aria-label="Green" title="Green" class="swatch" data-color="#16a34a" style="background:#16a34a"></button><button aria-label="Purple" title="Purple" class="swatch" data-color="#7c3aed" style="background:#7c3aed"></button><button aria-label="Sky" title="Sky" class="swatch" data-color="#38bdf8" style="background:#38bdf8"></button><button aria-label="Pink" title="Pink" class="swatch" data-color="#ec4899" style="background:#ec4899"></button><button aria-label="Maroon" title="Maroon" class="swatch" data-color="#7f1d1d" style="background:#7f1d1d"></button><button aria-label="Turquoise" title="Turquoise" class="swatch" data-color="#0d9488" style="background:#0d9488"></button><button aria-label="Lime" title="Lime" class="swatch" data-color="#a3e635" style="background:#a3e635"></button><button aria-label="Grey" title="Grey" class="swatch" data-color="#64748b" style="background:#64748b"></button><button aria-label="Gold" title="Gold" class="swatch" data-color="#eab308" style="background:#eab308"></button></div></div>
     <div class="rotation-panel" id="rotationPanel" hidden>
       <div class="rotation-head"><label for="objectRotation">Rotate selected equipment</label><span id="rotationObjectName">Goal</span></div>
       <div class="rotate-actions">
@@ -86,11 +86,23 @@
       <div class="hint">The yellow handle sits directly <b>on the curve</b>. Drag it to shape the arrow. The slider gives more precise control; straight arrows need “Make curved” first.</div>
     </div>
     <div class="pro-panel" id="formationPanel">
-      <div class="subheading">Formation templates</div>
-      <div class="form-row"><label for="formationColorSelect">Formation shirt colour</label><select id="formationColorSelect" class="field" aria-label="4-3-3 formation shirt colour"><option value="#1a2b5f">Navy</option><option value="#c8102e">Crimson</option><option value="#ffffff">White</option><option value="#ffcf48">Yellow</option><option value="#229be5">Blue</option></select></div>
-      <div class="hint" aria-live="polite">Colour to use: <span id="formationColourSwatch" aria-hidden="true" style="display:inline-block;width:14px;height:14px;border:1px solid #777;border-radius:50%;vertical-align:middle;background:#1a2b5f"></span> <b id="formationColourLabel">Navy</b>. Selecting a <b>Player colour</b> swatch above also sets this colour.</div>
-      <div class="pro-inline" style="margin-top:8px;flex-wrap:wrap"><button class="btn small" id="add433" type="button">＋ Add 4-3-3 (11 players)</button><button class="btn small" id="recolour433" type="button">🎨 Recolour 4-3-3</button></div>
-      <div class="hint">Add a numbered formation in the chosen colour. Recolour also works on a previously created formation with only eleven numbered player markers on the frame.</div>
+      <div class="subheading">Formation templates <span class="version-tag">v1.6.4</span></div>
+      <div class="formation-team-card">
+        <div class="formation-team-head"><strong>Team 1</strong><span>Attacks →</span></div>
+        <div class="form-row"><label for="formationPresetSelect">Formation</label><select id="formationPresetSelect" class="field" aria-label="Team 1 formation"></select></div>
+        <div class="form-row"><label for="formationColorSelect">Shirt colour</label><select id="formationColorSelect" class="field" aria-label="Team 1 shirt colour"></select></div>
+        <div class="formation-current" aria-live="polite"><span class="formation-current-dot" id="formationColourSwatch"></span><b id="formationColourLabel">Navy</b> · <span id="formation1Label">4-3-3</span></div>
+        <div class="pro-inline formation-actions"><button class="btn small dark" id="add433" type="button">＋ Add Team 1</button><button class="btn small" id="recolour433" type="button">🎨 Recolour</button></div>
+      </div>
+      <div class="formation-team-card team-away">
+        <div class="formation-team-head"><strong>Team 2</strong><span>← Attacks</span></div>
+        <div class="form-row"><label for="formation2PresetSelect">Formation</label><select id="formation2PresetSelect" class="field" aria-label="Team 2 formation"></select></div>
+        <div class="form-row"><label for="formation2ColorSelect">Shirt colour</label><select id="formation2ColorSelect" class="field" aria-label="Team 2 shirt colour"></select></div>
+        <div class="formation-current" aria-live="polite"><span class="formation-current-dot" id="formation2ColourSwatch"></span><b id="formation2ColourLabel">Crimson</b> · <span id="formation2Label">4-4-2</span></div>
+        <div class="pro-inline formation-actions"><button class="btn small dark" id="addTeam2" type="button">＋ Add Team 2</button><button class="btn small" id="recolourTeam2" type="button">🎨 Recolour</button></div>
+      </div>
+      <button class="btn formation-both" type="button" id="addBothFormations">⚽ Add both formations</button>
+      <div class="hint formation-help">Eleven numbered shirts per team. Team 2 is mirrored to face Team 1. For full 11v11 layouts choose a full pitch below. Existing pitch objects are not deleted; you can drag each player independently. Team colours are applied to new formations or use Recolour on an existing team.</div>
     </div>
     <div class="multi-toolbar"><button class="btn small" id="multiSelectMode" type="button" aria-pressed="false">☑ Multi-select</button><span class="hint" id="multiSelectCount">0 selected</span></div>
     <div class="multi-tools" id="multiSelectPanel" hidden>
@@ -109,7 +121,7 @@
     <div class="canvas-top"><div><h2 id="canvasTitle">Practice designer</h2><small id="canvasSub">Design your practice in 2D</small></div><div class="canvas-tools"><button class="btn small" id="exportSvg">SVG</button><button class="btn small" id="exportPng">PNG</button><button class="btn small dark" id="saveBtn">✓ Save</button></div></div>
     <div class="pitch-wrap"><svg class="pitch-svg select-mode" id="pitch" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -39 1120 728" aria-label="Interactive football pitch and practice diagram"></svg></div>
     <div class="helper" id="editorHelp">Select a tool, then tap or drag on the pitch. On tablets, use one finger to position players.</div>
-    <div class="frames frames-v11"><div class="frames-row"><div><b style="font-size:13px">Animation studio <span class="version-chip">v1.6.3</span></b><div class="hint">Duplicate a frame, reposition players, then preview or export their movement.</div></div><div class="frames-buttons"><button class="btn small" id="prevFrame" title="Previous frame">◀</button><button class="btn small" id="nextFrame" title="Next frame">▶</button><button class="btn small" id="addFrame">+ Frame</button><button class="btn small" id="removeFrame">− Frame</button></div></div>
+    <div class="frames frames-v11"><div class="frames-row"><div><b style="font-size:13px">Animation studio <span class="version-chip">v1.6.4</span></b><div class="hint">Duplicate a frame, reposition players, then preview or export their movement.</div></div><div class="frames-buttons"><button class="btn small" id="prevFrame" title="Previous frame">◀</button><button class="btn small" id="nextFrame" title="Next frame">▶</button><button class="btn small" id="addFrame">+ Frame</button><button class="btn small" id="removeFrame">− Frame</button></div></div>
 <div class="frame-dots" id="frameDots"></div>
 <div class="timeline-ui"><div class="timeline-controls"><button class="btn small primary" id="playBtn" type="button" aria-label="Play animation">▶ Play</button><button class="btn small" id="restartAnimation" type="button" aria-label="Restart animation">↺ Restart</button><label class="timeline-speed" for="speedControl">Speed <select id="speedControl" class="field" aria-label="Animation speed"><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label class="timeline-speed" for="gifFps">GIF FPS <select id="gifFps" class="field" aria-label="GIF export frames per second"><option value="10">10 · Small</option><option value="20" selected>20 · Smooth</option><option value="30">30 · High</option></select></label><label class="timeline-loop"><input type="checkbox" id="loopAnimation"> Loop</label><button id="exportGif" class="btn small dark" type="button">⬇ Animated GIF</button></div>
 <div class="scrubber-row"><label for="timelineScrub">Timeline</label><input type="range" id="timelineScrub" min="0" max="1000" step="1" value="0" aria-label="Scrub animation frames"><span id="timelineLabel" aria-live="polite">1 / 2</span></div>
@@ -138,7 +150,7 @@
   </aside>
 </div>
 </section>
-<section class="panel" id="panel-library"><div class="main-list v14-library"><div class="list-toolbar"><div><h2>My practice library <span class="version-chip">v1.6.3</span></h2><div class="hint">Find, tag and reuse practices across your coaching programme.</div></div><button id="libraryNew" class="btn primary">+ Create practice</button></div>
+<section class="panel" id="panel-library"><div class="main-list v14-library"><div class="list-toolbar"><div><h2>My practice library <span class="version-chip">v1.6.4</span></h2><div class="hint">Find, tag and reuse practices across your coaching programme.</div></div><button id="libraryNew" class="btn primary">+ Create practice</button></div>
   <div class="card card-pad v14-filter-panel"><div class="v14-filter-title"><strong>Search & filter practices</strong><span class="hint" id="libraryCount">All practices</span></div>
     <div class="v14-filter-grid">
       <div class="v14-filter-search"><label for="searchDrills">Search titles, coaching detail and tags</label><input id="searchDrills" class="field" placeholder="Search your library..."></div>
@@ -155,7 +167,7 @@
   <div class="library-grid" id="drillGrid"></div>
 </div></section>
 <section class="panel" id="panel-session"><div class="main-list">
-  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.6.3</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
+  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.6.4</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
   <div class="session-inline-callout" style="margin:12px 0">📚 <b>CoachTomAsh starter library:</b> 10 editable sessions and 30 example practices (U13–U16). Tap <b>Add 10 starter sessions</b> once to <b>merge</b> them with your existing library. No existing sessions are replaced.</div>
   <div class="session-workspace">
     <div class="card card-pad">
@@ -184,7 +196,7 @@
   <div class="session-library-head"><h3>My saved sessions</h3><span class="hint" id="sessionLibraryCount"></span></div>
   <div id="sessionSavedLibrary" class="session-catalogue-grid"></div>
 </div></section>
-<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.6.3</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
+<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.6.4</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
   <div class="card card-pad v14-curr-toolbar"><div class="v14-curr-controls"><div><label for="currAge">Age group</label><select id="currAge" class="field"><option value="">All ages</option><option>U9</option><option>U10</option><option>U11</option><option>U12</option><option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option><option>Senior</option></select></div><div><label for="currBlock">Programme block</label><select id="currBlock" class="field"><option value="1">Block 1</option><option value="2">Block 2</option><option value="3">Block 3</option><option value="4">Block 4</option></select></div><div class="v14-curr-guidance">Select a week to place the <b>currently open session</b>. Individual practices appear when tagged in the Drill designer.</div></div>
     <div class="v14-curr-stats" id="currSummary"></div></div>
   <div id="curriculumGrid" class="v14-week-grid"></div>
@@ -209,7 +221,7 @@
 <script src="./v11-enhancements.js"></script>
 <script src="./starter-sessions.js"></script>
 <script src="./v14-enhancements.js"></script>
-<script src="./pro-editor.js?v=163"></script>
+<script src="./pro-editor.js?v=164"></script>
 <script src="./multi-select.js"></script>
 <script src="./storage-ui.js"></script>
 </body>

@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.6.3 | Explicit colour selector and formation recolour
+/* CoachTomAsh Studio v1.6.4 | Explicit colour selector and formation recolour
  * Additive properties: object.scale (goals), object.groupId, path.curved/cx/cy.
  * Older drills do not need migration. Everything remains in the v1 storage schema.
  */
@@ -197,82 +197,135 @@
   pitch.addEventListener('pointerup',endGesture,true);
   pitch.addEventListener('pointercancel',endGesture,true);
 
-  // One action creates a ready-to-edit 4-3-3, but never overwrites existing objects.
-  const positions = [
-    ['1',9,50],['3',28,14],['4',24,38],['5',24,62],['2',28,86],
-    ['8',49,27],['6',44,50],['10',49,73],['11',77,15],['9',81,50],['7',77,85]
+  // CoachTomAsh v1.6.4: independent formation-v-formation templates.
+  // A template is a set of horizontal pitch lines, each with named shirt numbers.
+  // Every template contains eleven distinct numbers. Team 2 mirrors X positions,
+  // placing its goalkeeper on the right and its forwards facing Team 1.
+  const FORMATIONS = Object.freeze({
+    '4-3-3': [['1'],['3','4','5','2'],['8','6','10'],['11','9','7']],
+    '4-4-2': [['1'],['3','4','5','2'],['11','8','6','7'],['10','9']],
+    '4-2-3-1': [['1'],['3','4','5','2'],['8','6'],['11','10','7'],['9']],
+    '4-1-4-1': [['1'],['3','4','5','2'],['6'],['11','8','10','7'],['9']],
+    '3-5-2': [['1'],['3','4','5'],['11','8','6','10','2'],['9','7']],
+    '3-4-3': [['1'],['3','4','5'],['11','8','6','2'],['10','9','7']],
+    '5-3-2': [['1'],['3','4','5','2','7'],['11','6','8'],['10','9']],
+    '4-5-1': [['1'],['3','4','5','2'],['11','8','6','10','7'],['9']],
+    '4-3-1-2': [['1'],['3','4','5','2'],['11','6','8'],['10'],['9','7']],
+    '3-4-2-1': [['1'],['3','4','5'],['11','8','6','2'],['10','7'],['9']],
+    '4-4-1-1': [['1'],['3','4','5','2'],['11','8','6','7'],['10'],['9']]
+  });
+  const COLOURS = [
+    ['Navy','#1a2b5f'],['Crimson','#c8102e'],['White','#ffffff'],
+    ['Yellow','#ffcf48'],['Blue','#229be5'],['Black','#141923'],
+    ['Orange','#f97316'],['Green','#16a34a'],['Purple','#7c3aed'],
+    ['Sky','#38bdf8'],['Pink','#ec4899'],['Maroon','#7f1d1d'],
+    ['Turquoise','#0d9488'],['Lime','#a3e635'],['Grey','#64748b'],['Gold','#eab308']
   ];
-  // A visible, independent formation colour prevents ambiguous swatch selection
-  // and guarantees that an older cached app-core script cannot force navy.
-  const colourSelect = document.getElementById('formationColorSelect');
-  const formationColourLabel = document.getElementById('formationColourLabel');
-  const formationColourSwatch = document.getElementById('formationColourSwatch');
-  const colourNames = new Map([
-    ['#1a2b5f','Navy'], ['#c8102e','Crimson'], ['#ffffff','White'],
-    ['#ffcf48','Yellow'], ['#229be5','Blue']
-  ]);
-  const FORMATION_COLOR_KEY = 'coachtomash-formation-colour';
-  function validColour(c) {
-    const hex=String(c||'').toLowerCase();
-    return colourNames.has(hex) ? hex : '#1a2b5f';
+  const colourNames = new Map(COLOURS.map(([name,code])=>[code,name]));
+  const FORMATION_COLOR_KEY='coachtomash-formation-colour';
+  const FORMATION_2_COLOR_KEY='coachtomash-formation-2-colour';
+  const FORMATION_1_PRESET_KEY='coachtomash-formation-1-preset';
+  const FORMATION_2_PRESET_KEY='coachtomash-formation-2-preset';
+  const color1=document.getElementById('formationColorSelect');
+  const color2=document.getElementById('formation2ColorSelect');
+  const preset1=document.getElementById('formationPresetSelect');
+  const preset2=document.getElementById('formation2PresetSelect');
+  const colourLabels=[document.getElementById('formationColourLabel'),document.getElementById('formation2ColourLabel')];
+  const colourSwatches=[document.getElementById('formationColourSwatch'),document.getElementById('formation2ColourSwatch')];
+  const presetLabels=[document.getElementById('formation1Label'),document.getElementById('formation2Label')];
+  const colourInputs=[color1,color2],presetInputs=[preset1,preset2];
+  const validColour=c=>colourNames.has(String(c||'').toLowerCase())?String(c).toLowerCase():'#1a2b5f';
+  const validPreset=p=>Object.hasOwn(FORMATIONS,p)?p:'4-3-3';
+  const getPref=(key,fallback)=>{try{return localStorage.getItem(key)||fallback}catch(_){return fallback}};
+  const setPref=(key,value)=>{try{localStorage.setItem(key,value)}catch(_){}};
+  const colorKeys=[FORMATION_COLOR_KEY,FORMATION_2_COLOR_KEY];
+  const presetKeys=[FORMATION_1_PRESET_KEY,FORMATION_2_PRESET_KEY];
+  for(const el of colourInputs)el.innerHTML=COLOURS.map(([n,c])=>'<option value="'+c+'">'+n+'</option>').join('');
+  for(const el of presetInputs)el.innerHTML=Object.keys(FORMATIONS).map(n=>'<option value="'+n+'">'+n+'</option>').join('');
+  color1.value=validColour(getPref(colorKeys[0],playerColor));
+  color2.value=validColour(getPref(colorKeys[1],'#c8102e'));
+  preset1.value=validPreset(getPref(presetKeys[0],'4-3-3'));
+  preset2.value=validPreset(getPref(presetKeys[1],'4-4-2'));
+
+  function showFormationChoice(team) {
+    const i=team-1;
+    const c=validColour(colourInputs[i].value);
+    const p=validPreset(presetInputs[i].value);
+    colourInputs[i].value=c;presetInputs[i].value=p;
+    colourLabels[i].textContent=colourNames.get(c);
+    colourSwatches[i].style.backgroundColor=c;
+    presetLabels[i].textContent=p;
+    setPref(colorKeys[i],c);setPref(presetKeys[i],p);
   }
-  let formationChoice = validColour(playerColor);
-  try { const saved=localStorage.getItem(FORMATION_COLOR_KEY); if(saved)formationChoice=validColour(saved); } catch(e) {}
-  function showColour(c) {
-    formationChoice=validColour(c);
-    colourSelect.value=formationChoice;
-    formationColourSwatch.style.backgroundColor=formationChoice;
-    formationColourLabel.textContent=colourNames.get(formationChoice);
-    try {localStorage.setItem(FORMATION_COLOR_KEY,formationChoice);} catch(e) {}
-  }
-  // Swatch selection updates both individual-player colour and formation colour.
-  // Handle this directly: it works even when a previous object was selected.
-  document.getElementById('swatches').addEventListener('click', e => {
+  color1.addEventListener('change',()=>{showFormationChoice(1);playerColor=color1.value;updateObjectPanel();});
+  color2.addEventListener('change',()=>showFormationChoice(2));
+  preset1.addEventListener('change',()=>showFormationChoice(1));
+  preset2.addEventListener('change',()=>showFormationChoice(2));
+  document.getElementById('swatches').addEventListener('click',e=>{
     const b=e.target.closest('button[data-color]');
-    if(b)showColour(b.dataset.color);
+    if(b){color1.value=validColour(b.dataset.color);showFormationChoice(1);}
   });
-  colourSelect.addEventListener('change', () => {
-    showColour(colourSelect.value);
-    playerColor=formationChoice; // New manually placed players match the formation choice.
-    updateObjectPanel();
-  });
-  showColour(formationChoice);
-  document.getElementById('add433').onclick=()=>{
+  showFormationChoice(1);showFormationChoice(2);
+  playerColor=color1.value;updateObjectPanel();
+
+  function templatePositions(preset,team){
+    const rows=FORMATIONS[validPreset(preset)];
+    // Position lines in approximately realistic thirds, preserving a usable
+    // balance in the compact pitch editor. Attacking lines are mirrored for T2.
+    const xLines=rows.length===4?[9,27,43,78]:[9,25,41,62,83];
+    return rows.flatMap((labels,index)=>labels.map((label,j)=>({
+      label,
+      x:team===2?100-xLines[index]:xLines[index],
+      y:labels.length===1?50:11+j*78/(labels.length-1)
+    })));
+  }
+  function addFormationToFrame(team){
+    const i=team-1;
+    const preset=validPreset(presetInputs[i].value),colour=validColour(colourInputs[i].value);
+    const newId=uid();
+    const objects=templatePositions(preset,team).map(pt=>({
+      id:uid(),type:team===2?'opponent':'player',x:pt.x,y:pt.y,label:pt.label,
+      color:colour,formationId:newId,formationType:preset,formationTeam:team
+    }));
+    currentFrame().objects.push(...objects);
+    return {preset,colour,objects};
+  }
+  function addFormation(team){
     if(playing)stopPlayback();
-    // Read the visible selector at the exact moment the coach presses Add.
-    // The playerColor variable is intentionally not the source of truth here.
-    const chosenColor=validColour(colourSelect.value);
-    showColour(chosenColor);
-    snapshot();
-    const formationId=uid();
-    for(const [label,x,y] of positions) {
-      currentFrame().objects.push({id:uid(),type:'player',x,y,label,color:chosenColor,formationId,formationType:'4-3-3'});
-    }
+    snapshot();const result=addFormationToFrame(team);
     selectedId=null;selectedPath=null;commit();refresh();
-    toast('Added eleven '+colourNames.get(chosenColor)+' shirts (1–11)');
-  };
-  document.getElementById('recolour433').onclick=()=>{
+    toast(`Added Team ${team}: ${result.preset} · ${colourNames.get(result.colour)} (11 players)`);
+  }
+  function recolourFormation(team){
     if(playing)stopPlayback();
-    const chosenColor=validColour(colourSelect.value);
-    const f=currentFrame();
-    // Safely prefer the most recently added tagged formation.
-    const lastTagged=[...f.objects].reverse().find(o=>o.type==='player'&&o.formationId&&o.formationType==='4-3-3');
-    let targets=lastTagged?f.objects.filter(o=>o.formationId===lastTagged.formationId&&o.type==='player'):[];
-    if(!targets.length){
-      // Legacy v1.6 formations were untagged. Only recolour if exactly one
-      // complete 1–11 set is present. Never recolour unrelated practice players.
-      const numbered=f.objects.filter(o=>o.type==='player'&&/^(?:[1-9]|10|11)$/.test(String(o.label)));
-      if(numbered.length===11&&new Set(numbered.map(o=>String(o.label))).size===11)targets=numbered;
+    const colour=validColour(colourInputs[team-1].value), objects=currentFrame().objects;
+    const role=team===2?'opponent':'player';
+    // Prefer last tagged formation belonging to this team. Older v1.6.3
+    // formations have no formationTeam field, but always have type=player.
+    const last=[...objects].reverse().find(o=>o.formationId&&
+      (o.formationTeam===team||(team===1&&o.formationTeam==null&&o.type==='player')));
+    let targets=last?objects.filter(o=>o.formationId===last.formationId&&o.type===role):[];
+    if(!targets.length && team===1){
+      // Explicit safe legacy fallback: only exactly one untagged 1–11 set.
+      const untagged=objects.filter(o=>o.type==='player'&&!o.formationId&&/^(?:[1-9]|10|11)$/.test(String(o.label)));
+      if(untagged.length===11&&new Set(untagged.map(o=>String(o.label))).size===11)targets=untagged;
     }
-    if(targets.length!==11){
-      toast('No single 4-3-3 detected here. Add a new 4-3-3 or open a frame with eleven numbered shirts.');
-      return;
-    }
-    snapshot();
-    for(const o of targets)o.color=chosenColor;
-    commit();refresh();
-    toast('Recoloured eleven 4-3-3 shirts '+colourNames.get(chosenColor));
+    if(targets.length!==11){toast('No unambiguous Team '+team+' formation found on this frame. Add one first.');return;}
+    snapshot();for(const o of targets)o.color=colour;
+    commit();refresh();toast('Recoloured Team '+team+' '+colourNames.get(colour));
+  }
+  document.getElementById('add433').onclick=()=>addFormation(1);
+  document.getElementById('addTeam2').onclick=()=>addFormation(2);
+  document.getElementById('recolour433').onclick=()=>recolourFormation(1);
+  document.getElementById('recolourTeam2').onclick=()=>recolourFormation(2);
+  document.getElementById('addBothFormations').onclick=()=>{
+    if(playing)stopPlayback();
+    snapshot();const a=addFormationToFrame(1),b=addFormationToFrame(2);
+    selectedId=null;selectedPath=null;commit();refresh();
+    toast('Added Team 1 '+a.preset+' v Team 2 '+b.preset+' (22 players)');
   };
-  window.CTAProEditor={defaultControl,goalScale,positions,visibleMidpoint,setVisibleMidpoint,getBend,setBend};
+  window.CTAProEditor={defaultControl,goalScale,positions:templatePositions('4-3-3',1).map(({label,x,y})=>[label,x,y]),
+    visibleMidpoint,setVisibleMidpoint,getBend,setBend,FORMATION_PRESETS:FORMATIONS,templatePositions,
+    addFormationToFrame};
   updatePanels();
 })();
