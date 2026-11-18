@@ -179,3 +179,15 @@
 .multi-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0}
 .multi-toolbar .btn{white-space:normal}
 @media(max-width:720px){.storage-indicator{display:none}.storage-dialog{padding:16px}.recovery-point{flex-direction:column;align-items:flex-start}}
+
+/* v1.6 pro diagram controls: iPad-sized touch targets. */
+.pro-panel{padding:12px;margin:12px 0;border:1px solid #cbd6e9;border-radius:11px;background:#f6f8fc;display:grid;gap:8px;}
+.pro-panel[hidden]{display:none!important;}
+.pro-panel .subheading{margin:0;display:flex;justify-content:space-between;align-items:center;}
+.pro-panel label{font-size:12px;font-weight:600;color:#34445b;}
+.pro-panel input[type=range]{width:100%;min-height:28px;accent-color:#c8102e;}
+.pro-inline{display:flex;flex-wrap:wrap;gap:7px;}
+.pro-inline .btn{min-height:36px;}
+#formationPanel .btn{white-space:normal;min-height:42px;text-align:left;}
+.curve-handle{cursor:grab;touch-action:none;}
+#curvePanel{border-color:#b7cae7;}

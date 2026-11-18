@@ -56,6 +56,9 @@
     if(id){
       const wasSelected=selected.has(id);
       if(!wasSelected) selected.add(id);
+      // Persistent equipment groups are selected as one unit on touch devices.
+      const clicked=getObject(id);
+      if(clicked?.groupId)for(const o of objectList())if(o.groupId===clicked.groupId)selected.add(o.id);
       pointer={id:event.pointerId,mode:'items',start:p,positions:selectedObjects().map(o=>({id:o.id,x:o.x,y:o.y})),
         tappedId:id,moved:false,wasSelected};
     } else {
@@ -70,7 +73,7 @@
     let dx=desiredX,dy=desiredY;
     for(const start of pointer.positions){
       const o=getObject(start.id);if(!o)continue;
-      const limited=limitItemPosition({x:start.x+desiredX,y:start.y+desiredY},o.type,o.rotation);
+      const limited=limitItemPosition({x:start.x+desiredX,y:start.y+desiredY},o.type,o.rotation,o.scale);
       const allowedX=limited.x-start.x,allowedY=limited.y-start.y;
       dx=desiredX>=0?Math.min(dx,allowedX):Math.max(dx,allowedX);
       dy=desiredY>=0?Math.min(dy,allowedY):Math.max(dy,allowedY);
@@ -130,7 +133,7 @@
       if(action==='distribute-x'||action==='distribute-y'){
         const axis=action==='distribute-x'?'x':'y';const sorted=[...objects].sort((a,b)=>a[axis]-b[axis]);
         const low=sorted[0][axis],high=sorted[sorted.length-1][axis];
-        sorted.forEach((o,i)=>{const desired={x:o.x,y:o.y};desired[axis]=low+(high-low)*i/(sorted.length-1);const bounded=limitItemPosition(desired,o.type,o.rotation);o.x=bounded.x;o.y=bounded.y;});
+        sorted.forEach((o,i)=>{const desired={x:o.x,y:o.y};desired[axis]=low+(high-low)*i/(sorted.length-1);const bounded=limitItemPosition(desired,o.type,o.rotation,o.scale);o.x=bounded.x;o.y=bounded.y;});
       }else {
         for(const o of objects){const wanted={x:o.x,y:o.y};
           if(action==='left')wanted.x=minX;
@@ -139,17 +142,33 @@
           if(action==='top')wanted.y=minY;
           if(action==='center-y')wanted.y=averageY;
           if(action==='bottom')wanted.y=maxY;
-          const limited=limitItemPosition(wanted,o.type,o.rotation);o.x=limited.x;o.y=limited.y;
+          const limited=limitItemPosition(wanted,o.type,o.rotation,o.scale);o.x=limited.x;o.y=limited.y;
         }
       }
     });
   }
   function duplicateGroup(){groupMutation(objects=>{
+    const newGroupIds=new Map();
     const clones=objects.map(o=>{
-      const newO=copy(o);newO.id=uid();const p=limitItemPosition({x:o.x+5,y:o.y+5},o.type,o.rotation);newO.x=p.x;newO.y=p.y;return newO;
+      const newO=copy(o);newO.id=uid();if(newO.groupId){if(!newGroupIds.has(newO.groupId))newGroupIds.set(newO.groupId,uid());newO.groupId=newGroupIds.get(newO.groupId);}const p=limitItemPosition({x:o.x+5,y:o.y+5},o.type,o.rotation,o.scale);newO.x=p.x;newO.y=p.y;return newO;
     });
     objectList().push(...clones);
     selected.clear();clones.forEach(o=>selected.add(o.id));
+  });}
+  function persistGroup(){groupMutation(objects=>{const groupId=uid();objects.forEach(o=>o.groupId=groupId);});}
+  function removeGroup(){groupMutation(objects=>{objects.forEach(o=>delete o.groupId);});}
+  function rotateGroup(degrees){groupMutation(objects=>{
+    const cx=objects.reduce((sum,o)=>sum+o.x,0)/objects.length;
+    const cy=objects.reduce((sum,o)=>sum+o.y,0)/objects.length;
+    const rad=degrees*Math.PI/180,cos=Math.cos(rad),sin=Math.sin(rad);
+    objects.forEach(o=>{
+      const dx=(o.x-cx)*8.6,dy=(o.y-cy)*5.2;
+      const wanted={x:cx+(dx*cos-dy*sin)/8.6,y:cy+(dx*sin+dy*cos)/5.2};
+      const rotation=normalizeRotation(o.rotation||0)+degrees;
+      const limited=limitItemPosition(wanted,o.type,rotation,o.scale);
+      o.x=limited.x;o.y=limited.y;
+      if(ROTATABLE_TYPES.has(o.type))o.rotation=normalizeRotation(rotation);
+    });
   });}
   function deleteGroup(){groupMutation(objects=>{
     const ids=new Set(objects.map(o=>o.id));currentFrame().objects=currentFrame().objects.filter(o=>!ids.has(o.id));selected.clear();
@@ -157,7 +176,7 @@
   controls.addEventListener('click',event=>{
     const button=event.target.closest('[data-group-action]');if(!button || button.disabled)return;
     const action=button.dataset.groupAction;
-    if(action==='duplicate')duplicateGroup();else if(action==='delete')deleteGroup();else align(action);
+    if(action==='duplicate')duplicateGroup();else if(action==='delete')deleteGroup();else if(action==='group')persistGroup();else if(action==='ungroup')removeGroup();else if(action==='rotate-ccw')rotateGroup(-15);else if(action==='rotate-cw')rotateGroup(15);else align(action);
   });
   // The original delete/duplicate buttons also work with groups.
   for(const [id,action] of [['deleteBtn',deleteGroup],['duplicateBtn',duplicateGroup]]){
@@ -176,5 +195,5 @@
     }
   },true);
   updateControls();
-  window.CTAMultiSelect={selectedIds:()=>[...selected],isEnabled:()=>enabled,enable:setEnabled,align};
+  window.CTAMultiSelect={selectedIds:()=>[...selected],isEnabled:()=>enabled,enable:setEnabled,align,group:persistGroup,ungroup:removeGroup,rotate:rotateGroup};
 })();

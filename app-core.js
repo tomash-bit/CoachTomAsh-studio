@@ -53,15 +53,16 @@ const normalizeRotation=v=>((Number(v)||0)%360+360)%360;
 // viewBox provides genuine space there, including enough room for a full goal.
 const PITCH_EDGE={left:70,right:930,top:65,bottom:585};
 const CANVAS_EDGE={left:-60,right:1060,top:-39,bottom:689};
-function goalHalfExtents(type,angle=0){
+function goalHalfExtents(type,angle=0,scale=1){
   const a=normalizeRotation(angle)*Math.PI/180;
-  const w=type==='fullgoal'?48:22, h=type==='fullgoal'?25:13;
+  const factor=clamp(Number(scale)||1,.5,2.5);
+  const w=(type==='fullgoal'?48:22)*factor, h=(type==='fullgoal'?25:13)*factor;
   return {x:Math.abs(Math.cos(a))*w+Math.abs(Math.sin(a))*h,
           y:Math.abs(Math.sin(a))*w+Math.abs(Math.cos(a))*h};
 }
-function limitItemPosition(pos,type,angle=0){
+function limitItemPosition(pos,type,angle=0,scale=1){
   if(type!=='goal'&&type!=='fullgoal')return {x:clamp(pos.x,0,100),y:clamp(pos.y,0,100)};
-  const half=goalHalfExtents(type,angle),safe=7;
+  const half=goalHalfExtents(type,angle,scale),safe=7;
   return {
     x:clamp(pos.x,(CANVAS_EDGE.left+half.x+safe-70)/8.6,(CANVAS_EDGE.right-half.x-safe-70)/8.6),
     y:clamp(pos.y,(CANVAS_EDGE.top+half.y+safe-65)/5.2,(CANVAS_EDGE.bottom-half.y-safe-65)/5.2)
@@ -90,9 +91,18 @@ else if(o.type==='zone'){let w=(o.w||16)*8.6,h=(o.h||17)*5.2;g='<rect x="'+p.x+'
 const angle=ROTATABLE_TYPES.has(o.type)?normalizeRotation(o.rotation):0;
 const cx=o.type==='zone'?p.x+(o.w||16)*8.6/2:p.x;
 const cy=o.type==='zone'?p.y+(o.h||17)*5.2/2:p.y;
-return '<g data-oid="'+esc(o.id)+'"><g transform="rotate('+angle+' '+cx+' '+cy+')">'+g+'</g>'+halo+'</g>';}
+const scale=(o.type==='goal'||o.type==='fullgoal')?clamp(Number(o.scale)||1,.5,2.5):1;
+return '<g data-oid="'+esc(o.id)+'"><g transform="translate('+cx+' '+cy+') rotate('+angle+') scale('+scale+') translate('+(-cx)+' '+(-cy)+')">'+g+'</g>'+halo+'</g>';}
 
-function pathMarkup(p){const a=XY({x:p.x1,y:p.y1}),b=XY({x:p.x2,y:p.y2}),c=pathColors[p.type]||'white';const selected=p.id===selectedPath;const stroke=p.type==='press'?'10 7':p.type==='dribble'?'4 8':'';return '<g data-pid="'+esc(p.id)+'"><line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="#000" opacity=".14" stroke-width="10"/><line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="'+c+'" stroke-width="'+(selected?7:4.4)+'" stroke-linecap="round" '+(stroke?'stroke-dasharray="'+stroke+'"':'')+' marker-end="url(#arr-'+p.type+')"/></g>';}
+
+function pathMarkup(p){
+ const a=XY({x:p.x1,y:p.y1}),b=XY({x:p.x2,y:p.y2}),c=pathColors[p.type]||'white';
+ const selected=p.id===selectedPath,stroke=p.type==='press'?'10 7':p.type==='dribble'?'4 8':'';
+ const curved=!!p.curved&&Number.isFinite(Number(p.cx))&&Number.isFinite(Number(p.cy));
+ const q=curved?XY({x:Number(p.cx),y:Number(p.cy)}):null;
+ const d=curved?`M ${a.x} ${a.y} Q ${q.x} ${q.y} ${b.x} ${b.y}`:`M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+ return '<g data-pid="'+esc(p.id)+'"><path d="'+d+'" fill="none" stroke="#000" opacity=".14" stroke-width="10"/><path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+(selected?7:4.4)+'" stroke-linecap="round" '+(stroke?'stroke-dasharray="'+stroke+'"':'')+' marker-end="url(#arr-'+p.type+')"/><path d="'+d+'" fill="none" stroke="transparent" stroke-width="25"/></g>';
+}
 function draw(objects,paths,pitchType,temp){return defs()+outlineMarkup(pitchType)+paths.map(pathMarkup).join('')+objects.filter(o=>o.type==='zone').map(objMarkup).join('')+objects.filter(o=>o.type!=='zone').map(objMarkup).join('')+(temp?pathMarkup({...temp,id:'drawing'}):'');}
 function renderPitch(preview=null){const d=current(),f=currentFrame();pitch.innerHTML=draw(preview?.objects||f.objects,preview?.paths||f.paths,d.pitchType||'full',tempPath);}
 function refresh(){renderInfo();renderPitch();}
@@ -104,7 +114,7 @@ pitch.addEventListener('pointerdown',e=>{if(playing)return;const pos=svgPoint(e)
 if(['move','pass','dribble','press','zone'].includes(tool)){snapshot();const withinPitch=limitItemPosition(pos,tool);drag={kind:tool,start:withinPitch,current:withinPitch,moved:false};pitch.setPointerCapture(e.pointerId);return;}
 addItem(tool,pos);
 });
-pitch.addEventListener('pointermove',e=>{if(!drag||playing)return;const pos=svgPoint(e);if(drag.kind==='object'){const o=currentFrame().objects.find(x=>x.id===drag.id);if(!o)return;const next=limitItemPosition({x:pos.x-drag.offsetX,y:pos.y-drag.offsetY},o.type,o.rotation);const x=next.x,y=next.y;if(Math.abs(x-o.x)+Math.abs(y-o.y)>.05)drag.moved=true;o.x=x;o.y=y;renderPitch();}
+pitch.addEventListener('pointermove',e=>{if(!drag||playing)return;const pos=svgPoint(e);if(drag.kind==='object'){const o=currentFrame().objects.find(x=>x.id===drag.id);if(!o)return;const next=limitItemPosition({x:pos.x-drag.offsetX,y:pos.y-drag.offsetY},o.type,o.rotation,o.scale);const x=next.x,y=next.y;if(Math.abs(x-o.x)+Math.abs(y-o.y)>.05)drag.moved=true;o.x=x;o.y=y;renderPitch();}
 else{const p=limitItemPosition(pos,drag.kind);drag.current=p;drag.moved= Math.hypot(p.x-drag.start.x,p.y-drag.start.y)>2;if(drag.kind==='zone'){tempPath=null;const existing=$('pitch').querySelector('#preview-zone');if(existing)existing.remove();const start=XY({x:Math.min(drag.start.x,p.x),y:Math.min(drag.start.y,p.y)});pitch.insertAdjacentHTML('beforeend','<rect id="preview-zone" x="'+start.x+'" y="'+start.y+'" width="'+(Math.abs(drag.start.x-p.x)*8.6)+'" height="'+(Math.abs(drag.start.y-p.y)*5.2)+'" stroke="white" stroke-dasharray="9 5" fill="#ffffff22"/>');}else{tempPath={type:drag.kind,x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y};renderPitch();}}
 });
 function endDrag(){if(!drag)return;const t=drag;if(t.kind==='object'){if(!t.moved)undoStack.pop();else commit();}
@@ -124,7 +134,7 @@ $('fileInput').onchange=async(e)=>{const f=e.target.files[0];if(!f)return;try{co
 $('saveBtn').onclick=()=>{commit();toast('Practice saved in this browser. Back up to keep a portable copy.');};
 $('clearPitchBtn').onclick=()=>{if(!confirm('Clear all players, equipment and action lines from this frame?'))return;snapshot();currentFrame().objects=[];currentFrame().paths=[];selectedId=null;selectedPath=null;commit();refresh();};
 $('deleteBtn').onclick=()=>{const f=currentFrame();if(!selectedId&&!selectedPath){toast('Select an object or action line first');return;}snapshot();if(selectedId)f.objects=f.objects.filter(o=>o.id!==selectedId);if(selectedPath)f.paths=f.paths.filter(p=>p.id!==selectedPath);selectedId=null;selectedPath=null;commit();refresh();};
-$('duplicateBtn').onclick=()=>{const o=currentFrame().objects.find(x=>x.id===selectedId);if(!o){toast('Select an object first');return;}snapshot();const n=copy(o);n.id=uid();const pos=limitItemPosition({x:n.x+5,y:n.y+5},n.type,n.rotation);n.x=pos.x;n.y=pos.y;currentFrame().objects.push(n);selectedId=n.id;commit();refresh();};
+$('duplicateBtn').onclick=()=>{const o=currentFrame().objects.find(x=>x.id===selectedId);if(!o){toast('Select an object first');return;}snapshot();const n=copy(o);n.id=uid();const pos=limitItemPosition({x:n.x+5,y:n.y+5},n.type,n.rotation,n.scale);n.x=pos.x;n.y=pos.y;currentFrame().objects.push(n);selectedId=n.id;commit();refresh();};
 $('undoBtn').onclick=()=>{if(!undoStack.length){toast('Nothing to undo');return;}stopPlayback();const prev=undoStack.pop();const idx=state.drills.findIndex(x=>x.id===prev.drill.id);if(idx<0)return;state.drills[idx]=prev.drill;frameIndex=clamp(prev.index,0,prev.drill.frames.length-1);selectedId=null;selectedPath=null;persist();refresh();};
 $('objectLabel').oninput=e=>{const o=currentFrame().objects.find(x=>x.id===selectedId);if(!o)return;o.label=e.target.value;commit();renderPitch();};
 $('swatches').onclick=e=>{const b=e.target.closest('[data-color]');if(!b)return;playerColor=b.dataset.color;const o=currentFrame().objects.find(x=>x.id===selectedId);if(o){snapshot();o.color=playerColor;commit();}updateObjectPanel();renderPitch();};
@@ -132,7 +142,7 @@ $('toolGrid').onclick=e=>{const b=e.target.closest('[data-tool]');if(b)setTool(b
 function rotateSelected(newAngle){const o=currentFrame().objects.find(x=>x.id===selectedId);
 if(!o||!ROTATABLE_TYPES.has(o.type))return;
 const a=normalizeRotation(newAngle);if(normalizeRotation(o.rotation)===a)return;
-snapshot();o.rotation=a;const pos=limitItemPosition({x:o.x,y:o.y},o.type,a);o.x=pos.x;o.y=pos.y;commit();refresh();}
+snapshot();o.rotation=a;const pos=limitItemPosition({x:o.x,y:o.y},o.type,a,o.scale);o.x=pos.x;o.y=pos.y;commit();refresh();}
 $('rotationPanel').addEventListener('click',e=>{
 const delta=e.target.closest('[data-rotate]'),preset=e.target.closest('[data-rotation-preset]');
 const o=currentFrame().objects.find(x=>x.id===selectedId);if(!o)return;
@@ -146,13 +156,13 @@ $('goalPositionPanel').addEventListener('click',e=>{
   if(!o||!['goal','fullgoal'].includes(o.type))return;
   const side=b.dataset.goalSide;
   const angle={left:90,right:270,top:180,bottom:0}[side];
-  const extent=goalHalfExtents(o.type,angle),gap=8;
+  const extent=goalHalfExtents(o.type,angle,o.scale),gap=8;
   const next={x:o.x,y:o.y};
   if(side==='left'){next.x=(PITCH_EDGE.left-extent.x-gap-70)/8.6;next.y=clamp(next.y,0,100);}
   if(side==='right'){next.x=(PITCH_EDGE.right+extent.x+gap-70)/8.6;next.y=clamp(next.y,0,100);}
   if(side==='top'){next.y=(PITCH_EDGE.top-extent.y-gap-65)/5.2;next.x=clamp(next.x,0,100);}
   if(side==='bottom'){next.y=(PITCH_EDGE.bottom+extent.y+gap-65)/5.2;next.x=clamp(next.x,0,100);}
-  const p=limitItemPosition(next,o.type,angle);
+  const p=limitItemPosition(next,o.type,angle,o.scale);
   snapshot();o.rotation=angle;o.x=p.x;o.y=p.y;commit();refresh();
   toast('Goal placed outside the '+side+' boundary');
 });
@@ -164,6 +174,7 @@ $('prevFrame').onclick=()=>{stopPlayback();frameIndex=Math.max(0,frameIndex-1);s
 $('nextFrame').onclick=()=>{stopPlayback();frameIndex=Math.min(current().frames.length-1,frameIndex+1);selectedId=null;selectedPath=null;refresh();};
 $('frameDots').onclick=e=>{const b=e.target.closest('[data-frame]');if(!b)return;stopPlayback();frameIndex=+b.dataset.frame;selectedId=null;selectedPath=null;refresh();};
 function tweenFrames(a,b,t){const amap=new Map(a.objects.map(x=>[x.id,x]));const bmap=new Map(b.objects.map(x=>[x.id,x]));const ids=new Set([...amap.keys(),...bmap.keys()]);let objects=[];for(const id of ids){const ao=amap.get(id),bo=bmap.get(id);if(!ao||!bo){if(t<.5&&ao)objects.push(ao);if(t>=.5&&bo)objects.push(bo);continue;}let o=copy(bo);o.x=ao.x+(bo.x-ao.x)*t;o.y=ao.y+(bo.y-ao.y)*t;if(o.w!==undefined&&ao.w!==undefined)o.w=ao.w+(bo.w-ao.w)*t;if(o.h!==undefined&&ao.h!==undefined)o.h=ao.h+(bo.h-ao.h)*t;
+if((bo.type==='goal'||bo.type==='fullgoal')&&(bo.scale!==undefined||ao.scale!==undefined))o.scale=(Number(ao.scale)||1)+((Number(bo.scale)||1)-(Number(ao.scale)||1))*t;
 // Smoothly tween equipment rotation along the shortest arc between frames.
 if(ROTATABLE_TYPES.has(o.type)){
  const start=normalizeRotation(ao.rotation),end=normalizeRotation(bo.rotation);
