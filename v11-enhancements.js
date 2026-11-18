@@ -15,6 +15,7 @@
   if (!playButton || !slider || !gifButton || !dialog) return;
 
   const TRANSITION_MS = 1600;
+  const segmentMs = i => window.CTAAnimationPro?.segmentMs(current().frames, i) || TRANSITION_MS;
   let position = 0;
   let lastTimestamp = null;
   let exporting = false;
@@ -83,7 +84,15 @@
     if (lastTimestamp !== null) {
       // Cap elapsed time for a locked screen/backgrounded iPad.
       const dt = Math.min(150, timestamp - lastTimestamp);
-      position += dt * speed() / TRANSITION_MS;
+      // Preserve elapsed time across segments with different durations.
+      let remaining = dt * speed();
+      while (remaining > 0 && position < limit()) {
+        const i = Math.min(Math.floor(position), limit() - 1);
+        const ms = Math.max(400, segmentMs(i));
+        const toBoundary = (i + 1 - position) * ms;
+        if (remaining < toBoundary) { position += remaining / ms; remaining = 0; }
+        else { position = i + 1; remaining -= toBoundary; }
+      }
     }
     lastTimestamp = timestamp;
     if (position >= limit()) {
@@ -299,9 +308,9 @@
       const transitions = drill.frames.length - 1;
       // Preserve the original animation length regardless of export FPS.
       // Never silently reduce the number of frames, which makes motion faster.
-      const perSegment = Math.max(2, Math.round(TRANSITION_MS / 1000 * fps / speed()));
+      const counts = Array.from({length:transitions},(_,i)=>Math.max(2,Math.round((drill.frames[i+1]?.motion?.durationMs || TRANSITION_MS)/1000*fps/speed())));
       const holdFrames = Math.max(2, Math.round(fps * 0.5));
-      const total = transitions * perSegment + holdFrames;
+      const total = counts.reduce((a,b)=>a+b,0) + holdFrames;
       // Bound memory/CPU for iPad. Recommend lower FPS rather than
       // quietly shortening a user's full animation.
       if (total > 360) throw new Error(`This would render ${total} frames. Select a lower GIF FPS, increase playback speed, or split the practice into shorter animations (360-frame limit).`);
@@ -309,8 +318,8 @@
       let n = 0;
       const pitchType = drill.pitchType || 'full';
       for (let i = 0; i < transitions; i++) {
-        for (let j = 0; j < perSegment; j++) {
-          const diagram = tweenFrames(drill.frames[i], drill.frames[i + 1], j / perSegment);
+        for (let j = 0; j < counts[i]; j++) {
+          const diagram = tweenFrames(drill.frames[i], drill.frames[i + 1], j / counts[i]);
           writer.frame(await drawExportFrame(ctx, diagram, pitchType, canvas));
           n++;
           if (n % 3 === 0) {

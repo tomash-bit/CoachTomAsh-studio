@@ -209,3 +209,26 @@
 .formation-actions{display:flex;gap:6px;flex-wrap:wrap}
 .formation-both{display:block;width:100%;background:#eef3fb;color:#1a2b5f;border-color:#bfcce1;text-align:center}
 .formation-help{margin-top:9px}
+
+/* v1.7 Animation Studio Pro: responsive, touch-friendly movement sequence tools */
+.animpro-panel{margin-top:12px;background:#fff;border:1px solid #cfdbea;border-radius:12px;padding:13px;color:#1a2b5f}
+.animpro-header{display:flex;align-items:start;justify-content:space-between;gap:10px}
+.animpro-header strong{font-size:13px}.animpro-header p{font-size:11px;line-height:1.5;margin:5px 0 0;color:#63748a}
+.animpro-transition{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #e2e9f3;background:#f7f9fd;border-radius:9px;padding:9px;margin:10px 0;flex-wrap:wrap}
+.animpro-step{display:flex;flex-direction:column;gap:3px;font-size:12px}.animpro-step span{font-size:11px;color:#667792}
+.animpro-transition label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800}.animpro-transition .field{width:110px;min-height:35px}
+.animpro-presets{display:flex;flex-wrap:wrap;gap:6px}.animpro-presets .btn{min-height:35px}.animpro-selection{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0 8px;border-bottom:1px solid #e5ebf3;padding-bottom:9px}.animpro-selection span{font-size:12px;font-weight:750}
+.animpro-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.animpro-control{min-width:0}.animpro-control label{font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:5px;font-weight:800;margin-bottom:6px;color:#344d73}
+.animpro-control input[type="range"]{accent-color:#c8102e;width:100%;height:30px;touch-action:pan-y}.animpro-control .field{min-height:38px;width:100%}.animpro-ends{display:flex;justify-content:space-between;color:#718098;font-size:9px;gap:4px}.animpro-controls>.btn{align-self:end;min-height:38px}.animpro-foot{margin-top:10px;font-size:10px;line-height:1.5;color:#627791}
+.animpro-controls[hidden],.animpro-panel[hidden]{display:none!important}
+.animpro-guide{pointer-events:none}.animpro-panel button:disabled,.animpro-panel input:disabled,.animpro-panel select:disabled{opacity:.43}
+@media(max-width:650px){.animpro-controls{grid-template-columns:1fr}.animpro-header{align-items:center}.animpro-presets .btn{flex:1 0 43%}}
+@media print{.animpro-panel{display:none!important}}
+
+.animpro-actionlist{display:flex;flex-direction:column;gap:4px;margin:10px 0;max-height:205px;overflow-y:auto;padding-right:3px}
+.animpro-track{display:flex;align-items:center;gap:7px;border:1px solid #e1e7f2;background:#fbfcff;border-radius:7px;padding:5px 7px;min-height:29px;cursor:pointer;width:100%;text-align:left}
+.animpro-track.active{border-color:#c8102e;background:#fff4f5}
+.animpro-track-name{width:37px;flex:0 0 37px;font-size:10px;font-weight:800;color:#1a2b5f;overflow:hidden;text-overflow:ellipsis}
+.animpro-track-lane{height:7px;border-radius:5px;background:#e6edf6;position:relative;flex:1;overflow:hidden}
+.animpro-track-fill{position:absolute;top:0;bottom:0;border-radius:6px}
+.animpro-track-time{width:29px;text-align:right;font-size:10px;color:#65738a}
