@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.8 | Local-first Live Coaching Mode.
+/* CoachTomAsh Studio v1.8.1 | Two always-visible delivery timers.
    No network calls, no new dependencies. Delivery records live in the same validated
    state object as v1.7 and are included in existing JSON/IndexedDB backups. */
 'use strict';
@@ -31,7 +31,8 @@
     return {id:uid(),sessionId:s.id,plan,createdAt:now(),updatedAt:now(),status:'in-progress',
       index:0,restSeconds:90,overallReflection:'',practiceRemaining:{},practices:Object.fromEntries(plan.entries.map(e=>[e.entryId,
       {completed:false,outcome:'unreviewed',reflection:'',actualMs:0,restMs:0}])),
-      timer:{kind:'practice',entryId:plan.entries[0]?.entryId||null,remainingMs:(plan.entries[0]?.duration||0)*60000,runningSince:null}};
+      timer:{kind:'practice',entryId:plan.entries[0]?.entryId||null,remainingMs:(plan.entries[0]?.duration||0)*60000,runningSince:null},
+      restTimer:{kind:'rest',entryId:plan.entries[0]?.entryId||null,remainingMs:90000,runningSince:null}};
   }
   const currentEntry = r => r?.plan?.entries?.[r.index] || null;
   const currentDrill = r => getDrill(currentEntry(r)?.drillId);
@@ -44,25 +45,56 @@
     if(!timer)return 0;
     return clampMs((timer.remainingMs||0)-(timer.runningSince ? now()-timer.runningSince : 0));
   }
-  function pause(r,write=true){
-    if(!r?.timer?.runningSince)return;
-    const timer=r.timer,used=Math.min(clampMs(timer.remainingMs),Math.max(0,now()-timer.runningSince));
+  // Previous versions stored one timer, switching its `kind` between practice and rest.
+  // Retain the old practice timer property and migrate any old rest timer into a
+  // second, optional restTimer property, without changing session or drill data.
+  function ensureTimers(r){
+    if(!r)return;
+    const e=currentEntry(r),entryId=e?.entryId||null;
+    if(r.timer?.kind==='rest'){
+      if(!r.restTimer)r.restTimer={...r.timer,kind:'rest'};
+      r.timer={kind:'practice',entryId,remainingMs:r.practiceRemaining?.[entryId]??(e?.duration||0)*60000,runningSince:null};
+    }
+    if(!r.timer)r.timer={kind:'practice',entryId,remainingMs:r.practiceRemaining?.[entryId]??(e?.duration||0)*60000,runningSince:null};
+    if(!r.restTimer)r.restTimer={kind:'rest',entryId,remainingMs:(Number(r.restSeconds)||90)*1000,runningSince:null};
+  }
+  function pauseClock(r,kind){
+    ensureTimers(r);
+    const timer=kind==='rest'?r.restTimer:r.timer;
+    if(!timer?.runningSince)return false;
+    const used=Math.min(clampMs(timer.remainingMs),Math.max(0,now()-timer.runningSince));
     timer.remainingMs=clampMs(timer.remainingMs-used);
-    if(timer.kind==='practice'){r.practiceRemaining=r.practiceRemaining||{};r.practiceRemaining[timer.entryId]=timer.remainingMs;}
+    if(kind==='practice'){
+      r.practiceRemaining=r.practiceRemaining||{};
+      r.practiceRemaining[timer.entryId]=timer.remainingMs;
+    }
     const record=r.practices[timer.entryId];
-    if(record){if(timer.kind==='rest')record.restMs=(record.restMs||0)+used;
-      else record.actualMs=(record.actualMs||0)+used;}
+    if(record){
+      if(kind==='rest')record.restMs=(record.restMs||0)+used;
+      else record.actualMs=(record.actualMs||0)+used;
+    }
     timer.runningSince=null;
-    if(write)save(r);
+    return true;
+  }
+  function pause(r,write=true){
+    if(!r)return;
+    const practiceChanged=pauseClock(r,'practice');
+    const restChanged=pauseClock(r,'rest');
+    const changed=practiceChanged||restChanged;
+    if(write&&changed)save(r);
   }
   function setTimer(r,kind,reset=false){
-    pause(r,false);
+    ensureTimers(r);
+    pauseClock(r,kind);
     const e=currentEntry(r);
     r.practiceRemaining=r.practiceRemaining||{};
-    if(reset&&kind==='practice'&&e)delete r.practiceRemaining[e.entryId];
-    r.timer={kind,entryId:e?.entryId||null,runningSince:null,
-      remainingMs:kind==='rest' ? (Number(r.restSeconds)||90)*1000 :
-        (e ? (r.practiceRemaining[e.entryId] ?? e.duration*60000) : 0)};
+    if(kind==='rest'){
+      r.restTimer={kind:'rest',entryId:e?.entryId||null,runningSince:null,remainingMs:(Number(r.restSeconds)||90)*1000};
+    }else{
+      if(reset&&e)delete r.practiceRemaining[e.entryId];
+      r.timer={kind:'practice',entryId:e?.entryId||null,runningSince:null,
+        remainingMs:e?(r.practiceRemaining[e.entryId]??e.duration*60000):0};
+    }
     save(r);
   }
   function stopAnimation(){
@@ -114,16 +146,27 @@
   function updateCountdown(){
     if(!visible)return;
     const r=activeRecord();if(!r)return;
-    const timer=r.timer;
-    if(timer?.runningSince && remaining(timer)===0){
-      pause(r);
-      by('liveTimerStatus').textContent='Time complete. Move on when ready.';
-      if(navigator.vibrate)try{navigator.vibrate([150,80,150]);}catch(_){}
-      by('liveTimerToggle').textContent='▶ Resume';
+    ensureTimers(r);
+    let finished=false;
+    for(const kind of ['practice','rest']){
+      const timer=kind==='practice'?r.timer:r.restTimer;
+      if(timer?.runningSince&&remaining(timer)===0){
+        pauseClock(r,kind);finished=true;
+        if(navigator.vibrate)try{navigator.vibrate([150,80,150]);}catch(_){}
+      }
     }
-    by('liveTimer').textContent=format(remaining(timer));
-    by('liveTimerMode').textContent=timer?.kind==='rest'?'Rest interval':'Practice time';
-    by('liveTimerToggle').textContent=timer?.runningSince?'Ⅱ Pause':'▶ Start';
+    if(finished)save(r);
+    const practice=r.timer,rest=r.restTimer;
+    by('liveTimer').textContent=format(remaining(practice));
+    by('liveRestTimer').textContent=format(remaining(rest));
+    by('liveTimerToggle').textContent=practice.runningSince?'Ⅱ Pause practice':remaining(practice)>0?'▶ Start practice':'↺ Practice complete';
+    by('liveRestStart').textContent=rest.runningSince?'Ⅱ Pause rest':'▶ Start rest';
+    by('liveTimerStatus').textContent=practice.runningSince?'Practice countdown running':
+      remaining(practice)===0?'Practice complete':'Practice ready or paused';
+    by('liveRestStatus').textContent=rest.runningSince?'Rest / intervention counting down':
+      remaining(rest)===0?'Rest / intervention complete':'Rest / intervention ready or paused';
+    by('livePracticeClock').dataset.running=practice.runningSince?'true':'false';
+    by('liveRestClock').dataset.running=rest.runningSince?'true':'false';
   }
   function renderObservation(r){
     const entry=currentEntry(r),item=currentObservation(r);
@@ -135,8 +178,8 @@
     by('liveStatus').textContent=r.status==='delivered'?'DELIVERED':'IN PROGRESS';
     by('liveStatus').dataset.complete=r.status==='delivered'?'true':'false';
     by('liveSessionFinish').disabled=r.status==='delivered';
-    by('liveTimerStatus').textContent=r.status==='delivered'?'Delivered record saved locally.':
-      entry ? 'Practice and rest timers are independent.' : 'No practices in this session.';
+    // Both clocks remain visible; updateCountdown supplies their live statuses.
+    updateCountdown();
   }
   function renderList(r){
     by('livePracticeList').innerHTML=r.plan.entries.map((e,i)=>{
@@ -176,6 +219,7 @@
     pause(r,false);r.index=i;
     const e=currentEntry(r);r.practiceRemaining=r.practiceRemaining||{};
     r.timer={kind:'practice',entryId:e.entryId,remainingMs:r.practiceRemaining[e.entryId]??e.duration*60000,runningSince:null};
+    r.restTimer={kind:'rest',entryId:e.entryId,remainingMs:(Number(r.restSeconds)||90)*1000,runningSince:null};
     save(r);renderMain();
   }
   function openSession(sessionId,newRun=false){
@@ -221,9 +265,14 @@
       <div class="lc-animation"><strong>Practice animation</strong><button id="liveAnimToggle" class="lc-button lc-primary" type="button">▶ Play</button><button id="liveAnimRestart" class="lc-button" type="button">↺ Restart</button><label class="lc-loop"><input id="liveAnimLoop" type="checkbox" checked> Loop</label><input id="liveAnimProgress" type="range" min="0" max="1000" value="0" aria-label="Scrub practice animation"></div>
       <div class="lc-details"><h3>Delivery guidance</h3><div id="liveCoachDetails"></div></div>
     </section><aside class="lc-sidebar">
-      <section class="lc-widget lc-timer-panel"><div class="lc-eyebrow" id="liveTimerMode">Practice time</div><div class="lc-time" id="liveTimer">00:00</div><div id="liveTimerStatus" class="lc-hint">Ready</div>
-        <div class="lc-buttons"><button id="liveTimerToggle" class="lc-button lc-primary" type="button">▶ Start</button><button id="liveTimerReset" class="lc-button" type="button">↺ Reset</button></div>
-        <div class="lc-rest"><label>Rest interval (seconds) <input id="liveRestSeconds" type="number" min="15" max="600" step="15" value="90"></label><button id="liveRestStart" class="lc-button" type="button">Start rest</button><button id="livePracticeTimer" class="lc-button" type="button">Practice timer</button></div></section>
+      <section class="lc-widget lc-timer-panel"><h3>Training clocks</h3>
+        <div class="lc-clock-grid">
+          <div class="lc-clock" id="livePracticeClock" data-running="false"><div class="lc-eyebrow" id="liveTimerMode">Practice timer</div><div class="lc-time" id="liveTimer" aria-live="off">00:00</div><div id="liveTimerStatus" class="lc-hint">Ready</div>
+            <div class="lc-buttons"><button id="liveTimerToggle" class="lc-button lc-primary" type="button">▶ Start practice</button><button id="liveTimerReset" class="lc-button" type="button">↺ Reset</button></div></div>
+          <div class="lc-clock lc-clock-rest" id="liveRestClock" data-running="false"><div class="lc-eyebrow">Rest / intervention timer</div><div class="lc-time" id="liveRestTimer" aria-live="off">01:30</div><div id="liveRestStatus" class="lc-hint">Ready</div>
+            <div class="lc-buttons"><button id="liveRestStart" class="lc-button lc-primary" type="button">▶ Start rest</button><button id="liveRestReset" class="lc-button" type="button">↺ Reset</button></div>
+            <label class="lc-rest-setting">Duration (seconds) <input id="liveRestSeconds" type="number" min="15" max="600" step="15" value="90"></label></div>
+        </div><p class="lc-clock-note">Both clocks run independently. Start, pause or reset Rest / Intervention without stopping the practice countdown.</p></section>
       <section class="lc-widget"><h3>Session running order</h3><div id="livePracticeList" class="lc-list"></div></section>
       <section class="lc-widget lc-review"><h3>Quick coaching reflection</h3>
         <label>Outcome <select id="liveResult"><option value="unreviewed">Not reviewed</option><option value="achieved">Achieved</option><option value="partial">Partly achieved</option><option value="revisit">Revisit</option></select></label>
@@ -266,28 +315,37 @@
     const b=e.target.closest('[data-live-index]');if(b)setPracticeIndex(Number(b.dataset.liveIndex));
   });
   by('liveTimerToggle').addEventListener('click',()=>{
-    const r=activeRecord();if(!r)return;
-    if(r.timer?.runningSince){pause(r);}
+    const r=activeRecord();if(!r)return;ensureTimers(r);
+    if(r.timer.runningSince){pauseClock(r,'practice');save(r);}
     else if(remaining(r.timer)>0){r.timer.runningSince=now();save(r);}
-    else {by('liveTimerStatus').textContent='Reset the timer to begin again.';}
     updateCountdown();
   });
   by('liveTimerReset').addEventListener('click',()=>{
     const r=activeRecord();if(!r)return;
-    if(!confirm('Reset this timer? Elapsed coaching time already recorded will be retained.'))return;
-    setTimer(r,r.timer.kind,true);updateCountdown();
+    if(!confirm('Reset the practice countdown? Previously recorded coaching time will be retained.'))return;
+    setTimer(r,'practice',true);updateCountdown();
   });
   by('liveRestSeconds').addEventListener('change',e=>{
     const r=activeRecord();if(!r)return;
-    r.restSeconds=Math.max(15,Math.min(600,Number(e.target.value)||90));save(r);
-    e.target.value=r.restSeconds;
+    r.restSeconds=Math.max(15,Math.min(600,Number(e.target.value)||90));
+    ensureTimers(r);
+    if(!r.restTimer.runningSince)r.restTimer.remainingMs=r.restSeconds*1000;
+    save(r);e.target.value=r.restSeconds;updateCountdown();
   });
   by('liveRestStart').addEventListener('click',()=>{
-    const r=activeRecord();if(!r)return;
-    setTimer(r,'rest');r.timer.runningSince=now();save(r);updateCountdown();
+    const r=activeRecord();if(!r)return;ensureTimers(r);
+    if(r.restTimer.runningSince){pauseClock(r,'rest');save(r);}
+    else{
+      if(remaining(r.restTimer)===0)r.restTimer.remainingMs=(Number(r.restSeconds)||90)*1000;
+      r.restTimer.entryId=currentEntry(r)?.entryId||null;
+      r.restTimer.runningSince=now();save(r);
+    }
+    updateCountdown();
   });
-  by('livePracticeTimer').addEventListener('click',()=>{
-    const r=activeRecord();if(!r)return;setTimer(r,'practice');updateCountdown();
+  by('liveRestReset').addEventListener('click',()=>{
+    const r=activeRecord();if(!r)return;
+    if(!confirm('Reset the rest / intervention countdown? Previously recorded rest time will be retained.'))return;
+    setTimer(r,'rest',true);updateCountdown();
   });
   by('liveAnimToggle').addEventListener('click',()=>{
     if(animation.playing){stopAnimation();return;}

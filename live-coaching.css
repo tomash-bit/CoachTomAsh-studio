@@ -1,4 +1,4 @@
-/* CoachTomAsh v1.8 live training-day view. Isolated from normal editor layout. */
+/* CoachTomAsh v1.8.1 live training-day view. Isolated from normal editor layout. */
 body.live-coaching-open{overflow:hidden}
 .lc-overlay[hidden]{display:none!important}
 .lc-overlay{position:fixed;inset:0;width:100%;height:100dvh;z-index:20000;display:flex;flex-direction:column;overflow:hidden;background:#edf2f8;color:#1a2b5f;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -28,3 +28,21 @@ body.live-coaching-open{overflow:hidden}
 @media(max-width:930px){.lc-workspace{grid-template-columns:1fr}.lc-sidebar{display:grid;grid-template-columns:1fr 1fr}.lc-review{grid-column:1/-1}.lc-field svg{max-height:none}}
 @media(max-width:640px){.lc-head{align-items:flex-start}.lc-brand img{width:85px;height:35px}.lc-brand strong{font-size:11px}.lc-head-actions{gap:5px}.lc-head-actions .lc-status{display:none}.lc-head-actions .lc-button{padding:7px;font-size:11px}.lc-workspace{padding:8px;gap:8px}.lc-main,.lc-widget{padding:10px}.lc-sidebar{display:flex}.lc-section-title h2{font-size:16px}.lc-control-bar{padding:8px 10px}.lc-control-bar select{max-width:205px}.lc-field svg{max-height:none}}
 @media print{.lc-overlay{display:none!important}}
+
+/* 1.8.1 | Two always-visible countdowns, with clear active/paused states */
+.lc-clock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lc-clock{min-width:0;border:1px solid #dbe5f2;border-radius:12px;background:#f7faff;padding:12px;transition:border-color .15s,background .15s}
+.lc-clock[data-running="true"]{background:#eef4ff;border-color:#1a2b5f}
+.lc-clock-rest{background:#fffafa}
+.lc-clock-rest[data-running="true"]{background:#fff0f3;border-color:#c8102e}
+.lc-clock .lc-eyebrow{min-height:30px;display:flex;align-items:center}
+.lc-clock .lc-time{font-size:clamp(33px,3.6vw,58px);margin:5px 0;line-height:1.1;white-space:nowrap}
+.lc-clock-rest .lc-time{color:#a50b28}
+.lc-clock .lc-hint{min-height:31px;display:flex;align-items:center;justify-content:center;line-height:1.25;font-size:11px}
+.lc-clock .lc-buttons{margin:9px 0 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px}
+.lc-clock .lc-button{font-size:12px;padding:9px 7px;min-width:0}
+.lc-clock-rest .lc-primary{background:#c8102e;border-color:#c8102e}
+.lc-rest-setting{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:11px;font-weight:750;color:#566781}
+.lc-rest-setting input{width:76px;min-width:0;padding:7px;border:1px solid #c7d4e3;border-radius:8px;background:#fff;font:inherit;color:#1a2b5f}
+.lc-clock-note{margin:10px 0 0;color:#607491;font-size:11px;line-height:1.4}
+@media(max-width:580px){.lc-clock-grid{grid-template-columns:1fr}.lc-clock .lc-eyebrow{min-height:0}.lc-clock .lc-hint{min-height:0}}
