@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.8.2 | Always-on side-by-side WORK + REST timers.
+/* CoachTomAsh Studio v1.8.3 | Always-on WORK + REST timers with audio alerts.
    No network calls, no new dependencies. Delivery records live in the same validated
    state object as v1.7 and are included in existing JSON/IndexedDB backups. */
 'use strict';
@@ -143,6 +143,21 @@
   }
   function resetAnimation(){stopAnimation();animation.elapsed=0;renderPitchAt(currentDrill(activeRecord()),0);}
   let updateLoop=0,visible=false;
+  // WeakMap flags are tied to timer instances, so a reset/restart can alert again
+  // without changing the saved session/delivery schema or repeating a beep on ticks.
+  const alertFlags=new WeakMap();
+  function alertForTimer(kind,timer,ms){
+    if(!timer?.runningSince)return;
+    let flags=alertFlags.get(timer);
+    if(!flags){flags={warned:false,complete:false};alertFlags.set(timer,flags);}
+    const audio=window.CTALiveTimerAudio;
+    if(ms>0&&ms<=10000&&!flags.warned){
+      flags.warned=true;audio?.playWarning(kind);
+    }
+    if(ms===0&&!flags.complete){
+      flags.complete=true;audio?.playComplete(kind);
+    }
+  }
   function updateCountdown(){
     if(!visible)return;
     const r=activeRecord();if(!r)return;
@@ -150,7 +165,9 @@
     let finished=false;
     for(const kind of ['practice','rest']){
       const timer=kind==='practice'?r.timer:r.restTimer;
-      if(timer?.runningSince&&remaining(timer)===0){
+      const ms=remaining(timer);
+      alertForTimer(kind,timer,ms);
+      if(timer?.runningSince&&ms===0){
         pauseClock(r,kind);finished=true;
         if(navigator.vibrate)try{navigator.vibrate([150,80,150]);}catch(_){}
       }
@@ -266,7 +283,16 @@
           <div class="lc-clock lc-clock-rest" id="liveRestClock" data-running="false"><div class="lc-eyebrow">REST / INTERVENTION</div><div class="lc-time" id="liveRestTimer" aria-live="off">01:30</div><div id="liveRestStatus" class="lc-hint">Ready</div>
             <div class="lc-buttons"><button id="liveRestStart" class="lc-button lc-primary" type="button">▶ Start rest</button><button id="liveRestReset" class="lc-button" type="button">↺ Reset</button></div>
             <label class="lc-rest-setting">Duration (seconds) <input id="liveRestSeconds" type="number" min="15" max="600" step="15" value="90"></label></div>
-        </div><p class="lc-clock-note">Both clocks stay visible and run independently.</p></section>
+        </div>
+        <details class="lc-sound-settings" id="liveSoundDetails"><summary>🔊 Sound alerts <span id="liveSoundSummary">On · 10s warning</span></summary>
+          <div class="lc-sound-row">
+            <label class="lc-sound-check"><input id="liveSoundEnabled" type="checkbox" checked> Sound enabled</label>
+            <label class="lc-sound-check"><input id="liveSoundWarning" type="checkbox" checked> 10-second warning</label>
+            <label class="lc-sound-range">Volume <input id="liveSoundVolume" type="range" min="0" max="100" step="5" value="75" aria-label="Alert volume"><span id="liveSoundVolumeValue">75%</span></label>
+            <button class="lc-button" id="liveSoundTestWork" type="button">Test WORK</button>
+            <button class="lc-button" id="liveSoundTestRest" type="button">Test REST</button>
+          </div><div class="lc-hint" id="liveSoundStatus" role="status" aria-live="polite">Tap Start or Test to enable sound on iPad.</div>
+        </details><p class="lc-clock-note">Both clocks stay visible and run independently.</p></section>
 
     <main class="lc-workspace"><section class="lc-main">
       <div class="lc-section-title"><div><h2 id="livePracticeTitle"></h2><span id="livePracticeSubtitle"></span></div><div class="lc-nav"><button id="livePrev" class="lc-button" type="button">← Previous</button><button id="liveNext" class="lc-button lc-primary" type="button">Next →</button></div></div>
@@ -284,6 +310,7 @@
       </section>
     </aside></main>`;
   root.appendChild(overlay);
+  window.CTALiveTimerAudio?.mount();
   const openHeader=document.createElement('button');openHeader.type='button';openHeader.id='liveHeaderOpen';openHeader.className='btn primary';openHeader.textContent='▶ Live coaching';
   by('storageOpen')?.parentElement?.insertBefore(openHeader,by('storageOpen'));
   const sessionLaunch=document.createElement('button');sessionLaunch.id='liveSessionOpen';sessionLaunch.type='button';sessionLaunch.className='btn primary';sessionLaunch.textContent='▶ Deliver this session';
@@ -318,7 +345,7 @@
   by('liveTimerToggle').addEventListener('click',()=>{
     const r=activeRecord();if(!r)return;ensureTimers(r);
     if(r.timer.runningSince){pauseClock(r,'practice');save(r);}
-    else if(remaining(r.timer)>0){r.timer.runningSince=now();save(r);}
+    else if(remaining(r.timer)>0){window.CTALiveTimerAudio?.unlock();r.timer.runningSince=now();save(r);}
     updateCountdown();
   });
   by('liveTimerReset').addEventListener('click',()=>{
@@ -337,7 +364,8 @@
     const r=activeRecord();if(!r)return;ensureTimers(r);
     if(r.restTimer.runningSince){pauseClock(r,'rest');save(r);}
     else{
-      if(remaining(r.restTimer)===0)r.restTimer.remainingMs=(Number(r.restSeconds)||90)*1000;
+      if(remaining(r.restTimer)===0){r.restTimer.remainingMs=(Number(r.restSeconds)||90)*1000;alertFlags.delete(r.restTimer);}
+      window.CTALiveTimerAudio?.unlock();
       r.restTimer.entryId=currentEntry(r)?.entryId||null;
       r.restTimer.runningSince=now();save(r);
     }

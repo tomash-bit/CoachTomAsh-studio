@@ -86,3 +86,17 @@ body.live-coaching-open{overflow:hidden}
  .lc-timer-dock .lc-rest-setting{font-size:9px;gap:3px;justify-content:space-between;margin-top:3px}
  .lc-timer-dock .lc-rest-setting input{width:48px;font-size:11px;padding:4px}
 }
+
+/* 1.8.3 | Accessible, touch-friendly sound controls. Clocks stay side by side. */
+.lc-sound-settings{margin-top:6px;border-top:1px solid #dce4f0;padding:4px 0 0;color:#1a2b5f}
+.lc-sound-settings summary{cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;padding:5px 2px;list-style:revert;user-select:none}
+.lc-sound-settings summary span{font-size:11px;font-weight:600;color:#697d97}
+.lc-sound-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 13px;padding:7px 2px}
+.lc-sound-row label{display:flex;align-items:center;gap:7px;font-weight:650;font-size:12px;white-space:nowrap}
+.lc-sound-check input{height:17px;width:17px;accent-color:#c8102e}
+.lc-sound-range{flex:1 1 190px}
+.lc-sound-range input{flex:1;min-width:70px;max-width:180px;accent-color:#c8102e}
+.lc-sound-row .lc-button{padding:8px 10px;min-height:34px;font-size:11px}
+.lc-sound-row .lc-button:disabled{opacity:.5;cursor:not-allowed}
+#liveSoundStatus{padding:2px 2px 6px;font-size:11px}
+@media(max-width:600px){.lc-sound-row{gap:7px}.lc-sound-range{flex:1 1 150px}.lc-sound-row label{font-size:11px}}
