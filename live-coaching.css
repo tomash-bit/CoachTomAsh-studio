@@ -1,4 +1,4 @@
-/* CoachTomAsh v1.8.1 live training-day view. Isolated from normal editor layout. */
+/* CoachTomAsh v1.8.2 live training-day view. Isolated from normal editor layout. */
 body.live-coaching-open{overflow:hidden}
 .lc-overlay[hidden]{display:none!important}
 .lc-overlay{position:fixed;inset:0;width:100%;height:100dvh;z-index:20000;display:flex;flex-direction:column;overflow:hidden;background:#edf2f8;color:#1a2b5f;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -46,3 +46,43 @@ body.live-coaching-open{overflow:hidden}
 .lc-rest-setting input{width:76px;min-width:0;padding:7px;border:1px solid #c7d4e3;border-radius:8px;background:#fff;font:inherit;color:#1a2b5f}
 .lc-clock-note{margin:10px 0 0;color:#607491;font-size:11px;line-height:1.4}
 @media(max-width:580px){.lc-clock-grid{grid-template-columns:1fr}.lc-clock .lc-eyebrow{min-height:0}.lc-clock .lc-hint{min-height:0}}
+
+/* 1.8.2 | Work and Rest always share an above-pitch, non-scrolling dock.
+   Both timers remain on one row at every supported viewport width. */
+.lc-timer-dock{
+  box-sizing:border-box;flex:0 0 auto;position:relative;z-index:3;
+  padding:9px 20px 10px;min-height:0;margin:0;border-radius:0;
+  box-shadow:0 2px 11px #172b5312;border-left:0;border-right:0;
+  background:#f0f4fa;
+}
+.lc-timer-dock .lc-clock-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:14px}
+.lc-timer-dock .lc-clock{background:#fff;border-radius:11px;padding:8px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'label controls' 'time controls' 'status controls';column-gap:12px;align-items:center;min-width:0}
+.lc-timer-dock .lc-clock-rest{background:#fffafb}
+.lc-timer-dock .lc-eyebrow{grid-area:label;min-height:0!important;color:#1a2b5f;font-size:12px;line-height:1.2}
+.lc-timer-dock .lc-clock-rest .lc-eyebrow{color:#a50b28}
+.lc-timer-dock .lc-time{grid-area:time;text-align:left;font-size:clamp(34px,4.2vw,64px);line-height:1.04;margin:2px 0}
+.lc-timer-dock .lc-hint{grid-area:status;min-height:0!important;justify-content:flex-start!important;text-align:left!important;font-size:11px}
+.lc-timer-dock .lc-buttons{grid-area:controls;display:flex;flex-direction:column;justify-content:center;gap:5px;margin:0;min-width:124px}
+.lc-timer-dock .lc-buttons button{min-height:34px;padding:5px 9px;font-size:11px;white-space:nowrap}
+.lc-timer-dock .lc-rest-setting{grid-column:1 / -1;margin:6px 0 0;display:flex;justify-content:flex-end;gap:7px;font-size:10px}
+.lc-timer-dock .lc-rest-setting input{height:29px;width:64px;padding:4px 7px}
+.lc-timer-dock .lc-clock-note{display:none}
+@media(max-width:900px){
+ .lc-timer-dock{padding:7px 10px}
+ .lc-timer-dock .lc-clock-grid{gap:8px}
+ .lc-timer-dock .lc-clock{column-gap:8px;padding:8px}
+ .lc-timer-dock .lc-buttons{min-width:96px}
+ .lc-timer-dock .lc-time{font-size:clamp(31px,5vw,52px)}
+}
+@media(max-width:590px){
+ .lc-timer-dock{padding:5px 6px}
+ .lc-timer-dock .lc-clock-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px}
+ .lc-timer-dock .lc-clock{display:flex;flex-direction:column;align-items:stretch;padding:6px;gap:2px}
+ .lc-timer-dock .lc-eyebrow{font-size:10px;min-height:24px!important;align-items:center}
+ .lc-timer-dock .lc-time{text-align:center;font-size:clamp(28px,8.5vw,42px);letter-spacing:-.045em}
+ .lc-timer-dock .lc-hint{display:none}
+ .lc-timer-dock .lc-buttons{width:100%;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px}
+ .lc-timer-dock .lc-buttons button{padding:4px 3px;min-height:32px;font-size:10px;white-space:normal}
+ .lc-timer-dock .lc-rest-setting{font-size:9px;gap:3px;justify-content:space-between;margin-top:3px}
+ .lc-timer-dock .lc-rest-setting input{width:48px;font-size:11px;padding:4px}
+}

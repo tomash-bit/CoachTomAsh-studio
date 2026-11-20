@@ -1,4 +1,4 @@
-/* CoachTomAsh Studio v1.8.1 | Two always-visible delivery timers.
+/* CoachTomAsh Studio v1.8.2 | Always-on side-by-side WORK + REST timers.
    No network calls, no new dependencies. Delivery records live in the same validated
    state object as v1.7 and are included in existing JSON/IndexedDB backups. */
 'use strict';
@@ -159,12 +159,12 @@
     const practice=r.timer,rest=r.restTimer;
     by('liveTimer').textContent=format(remaining(practice));
     by('liveRestTimer').textContent=format(remaining(rest));
-    by('liveTimerToggle').textContent=practice.runningSince?'Ⅱ Pause practice':remaining(practice)>0?'▶ Start practice':'↺ Practice complete';
+    by('liveTimerToggle').textContent=practice.runningSince?'Ⅱ Pause work':remaining(practice)>0?'▶ Start work':'✓ Work complete';
     by('liveRestStart').textContent=rest.runningSince?'Ⅱ Pause rest':'▶ Start rest';
-    by('liveTimerStatus').textContent=practice.runningSince?'Practice countdown running':
-      remaining(practice)===0?'Practice complete':'Practice ready or paused';
-    by('liveRestStatus').textContent=rest.runningSince?'Rest / intervention counting down':
-      remaining(rest)===0?'Rest / intervention complete':'Rest / intervention ready or paused';
+    by('liveTimerStatus').textContent=practice.runningSince?'Counting down':
+      remaining(practice)===0?'Complete':'Ready / paused';
+    by('liveRestStatus').textContent=rest.runningSince?'Counting down':
+      remaining(rest)===0?'Complete':'Ready / paused';
     by('livePracticeClock').dataset.running=practice.runningSince?'true':'false';
     by('liveRestClock').dataset.running=rest.runningSince?'true':'false';
   }
@@ -259,20 +259,21 @@
     <div class="lc-head-actions"><span class="lc-status" id="liveStatus">IN PROGRESS</span><button class="lc-button lc-ghost" id="liveFullScreen" type="button">⛶ Full screen</button><button class="lc-button lc-close" id="liveClose" type="button">✕ Exit</button></div></header>
     <div class="lc-control-bar"><label>Session <select id="liveSessionSelect" aria-label="Choose saved session"></select></label><label>Delivery <select id="liveRunSelect" aria-label="Choose past delivery record"></select></label><strong id="liveTitle"></strong>
       <button class="lc-button" id="liveNewDelivery" type="button">+ New delivery</button><span id="liveOverallProgress"></span></div>
+      <section class="lc-widget lc-timer-panel lc-timer-dock" role="region" aria-label="Always visible work and rest intervention timers">
+        <div class="lc-clock-grid">
+          <div class="lc-clock" id="livePracticeClock" data-running="false"><div class="lc-eyebrow" id="liveTimerMode">WORK TIME</div><div class="lc-time" id="liveTimer" aria-live="off">00:00</div><div id="liveTimerStatus" class="lc-hint">Ready</div>
+            <div class="lc-buttons"><button id="liveTimerToggle" class="lc-button lc-primary" type="button">▶ Start work</button><button id="liveTimerReset" class="lc-button" type="button">↺ Reset</button></div></div>
+          <div class="lc-clock lc-clock-rest" id="liveRestClock" data-running="false"><div class="lc-eyebrow">REST / INTERVENTION</div><div class="lc-time" id="liveRestTimer" aria-live="off">01:30</div><div id="liveRestStatus" class="lc-hint">Ready</div>
+            <div class="lc-buttons"><button id="liveRestStart" class="lc-button lc-primary" type="button">▶ Start rest</button><button id="liveRestReset" class="lc-button" type="button">↺ Reset</button></div>
+            <label class="lc-rest-setting">Duration (seconds) <input id="liveRestSeconds" type="number" min="15" max="600" step="15" value="90"></label></div>
+        </div><p class="lc-clock-note">Both clocks stay visible and run independently.</p></section>
+
     <main class="lc-workspace"><section class="lc-main">
       <div class="lc-section-title"><div><h2 id="livePracticeTitle"></h2><span id="livePracticeSubtitle"></span></div><div class="lc-nav"><button id="livePrev" class="lc-button" type="button">← Previous</button><button id="liveNext" class="lc-button lc-primary" type="button">Next →</button></div></div>
       <div class="lc-field"><svg id="livePitch" viewBox="-60 -39 1120 728" role="img" aria-label="Animated football practice diagram"></svg></div>
       <div class="lc-animation"><strong>Practice animation</strong><button id="liveAnimToggle" class="lc-button lc-primary" type="button">▶ Play</button><button id="liveAnimRestart" class="lc-button" type="button">↺ Restart</button><label class="lc-loop"><input id="liveAnimLoop" type="checkbox" checked> Loop</label><input id="liveAnimProgress" type="range" min="0" max="1000" value="0" aria-label="Scrub practice animation"></div>
       <div class="lc-details"><h3>Delivery guidance</h3><div id="liveCoachDetails"></div></div>
     </section><aside class="lc-sidebar">
-      <section class="lc-widget lc-timer-panel"><h3>Training clocks</h3>
-        <div class="lc-clock-grid">
-          <div class="lc-clock" id="livePracticeClock" data-running="false"><div class="lc-eyebrow" id="liveTimerMode">Practice timer</div><div class="lc-time" id="liveTimer" aria-live="off">00:00</div><div id="liveTimerStatus" class="lc-hint">Ready</div>
-            <div class="lc-buttons"><button id="liveTimerToggle" class="lc-button lc-primary" type="button">▶ Start practice</button><button id="liveTimerReset" class="lc-button" type="button">↺ Reset</button></div></div>
-          <div class="lc-clock lc-clock-rest" id="liveRestClock" data-running="false"><div class="lc-eyebrow">Rest / intervention timer</div><div class="lc-time" id="liveRestTimer" aria-live="off">01:30</div><div id="liveRestStatus" class="lc-hint">Ready</div>
-            <div class="lc-buttons"><button id="liveRestStart" class="lc-button lc-primary" type="button">▶ Start rest</button><button id="liveRestReset" class="lc-button" type="button">↺ Reset</button></div>
-            <label class="lc-rest-setting">Duration (seconds) <input id="liveRestSeconds" type="number" min="15" max="600" step="15" value="90"></label></div>
-        </div><p class="lc-clock-note">Both clocks run independently. Start, pause or reset Rest / Intervention without stopping the practice countdown.</p></section>
       <section class="lc-widget"><h3>Session running order</h3><div id="livePracticeList" class="lc-list"></div></section>
       <section class="lc-widget lc-review"><h3>Quick coaching reflection</h3>
         <label>Outcome <select id="liveResult"><option value="unreviewed">Not reviewed</option><option value="achieved">Achieved</option><option value="partial">Partly achieved</option><option value="revisit">Revisit</option></select></label>
