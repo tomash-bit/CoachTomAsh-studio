@@ -232,3 +232,7 @@
 .animpro-track-lane{height:7px;border-radius:5px;background:#e6edf6;position:relative;flex:1;overflow:hidden}
 .animpro-track-fill{position:absolute;top:0;bottom:0;border-radius:6px}
 .animpro-track-time{width:29px;text-align:right;font-size:10px;color:#65738a}
+
+/* v1.7.1 GIF export preset: keep full resolution label visible on iPad. */
+#gifResolution{width:178px;min-width:155px;max-width:55vw}
+@media(max-width:600px){#gifResolution{width:165px;min-width:145px}}

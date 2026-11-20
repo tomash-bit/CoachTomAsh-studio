@@ -8,6 +8,7 @@
   const label = document.getElementById('timelineLabel');
   const speedControl = document.getElementById('speedControl');
   const gifFpsControl = document.getElementById('gifFps');
+  const gifResolutionControl = document.getElementById('gifResolution');
   const loopControl = document.getElementById('loopAnimation');
   const hint = document.getElementById('animationHint');
   const gifButton = document.getElementById('exportGif');
@@ -27,6 +28,16 @@
   const limit = () => Math.max(0, numberOfFrames() - 1);
   const speed = () => Number(speedControl.value) || 1;
   const exportFPS = () => Number(gifFpsControl?.value) || 20;
+  const GIF_SIZES = Object.freeze({
+    standard: {width:480, height:312, label:'Standard'},
+    hd: {width:960, height:624, label:'HD'},
+    ultra: {width:1440, height:936, label:'UltraHD'}
+  });
+  const exportSize = () => GIF_SIZES[gifResolutionControl?.value] || GIF_SIZES.standard;
+  function exportHint() {
+    const size = exportSize();
+    hint.textContent = `GIF: ${size.width} × ${size.height} (${size.label}) at ${exportFPS()} FPS and ${speed()}× playback. Ultra HD takes longer and can produce large files on iPad.`;
+  }
 
   // Always derive animation frames from the saved positions. No animation state is
   // written into the practice library and older JSON backups remain valid.
@@ -151,9 +162,8 @@
     }
   }, {capture: true});
 
-  gifFpsControl?.addEventListener('change', () => {
-    hint.textContent = `GIF export: ${exportFPS()} FPS at ${speed()}× movement speed. Higher FPS is smoother but creates larger files.`;
-  });
+  gifFpsControl?.addEventListener('change', exportHint);
+  gifResolutionControl?.addEventListener('change', exportHint);
 
   // ---- GIF89a encoder (RGB332 palette, LZW, no external library) ----
   // GIF is limited to 256 colours. RGB332 gives predictable local/offline output.
@@ -300,7 +310,9 @@
     selectedId = null; selectedPath = null;
     setExportUI(true, 'Rendering your animation on this device. Keep the app open.');
     const canvas = document.createElement('canvas');
-    canvas.width = 480; canvas.height = 312;
+    const exportPreset = exportSize();
+    canvas.width = exportPreset.width;
+    canvas.height = exportPreset.height;
     try {
       const ctx = canvas.getContext('2d', {willReadFrequently:true});
       if (!ctx) throw new Error('Canvas rendering is unavailable on this device');
@@ -314,6 +326,15 @@
       // Bound memory/CPU for iPad. Recommend lower FPS rather than
       // quietly shortening a user's full animation.
       if (total > 360) throw new Error(`This would render ${total} frames. Select a lower GIF FPS, increase playback speed, or split the practice into shorter animations (360-frame limit).`);
+      // Prevent an iPad tab from unexpectedly running out of memory on an
+      // extremely long Ultra HD export. Never shorten the user's animation.
+      // Use a generous 400 megapixel-frame rendering budget across all presets.
+      const totalPixels = total * canvas.width * canvas.height;
+      if (totalPixels > 400000000) throw new Error(`${exportPreset.label} at ${fps} FPS would process ${Math.round(totalPixels / 1000000)} million pixels. Try 10 or 20 FPS, a faster playback speed, or fewer keyframes to keep the iPad responsive.`);
+      if (exportPreset.label === 'UltraHD') {
+        hint.textContent = `Ultra HD ${canvas.width} × ${canvas.height}: preparing ${total} frames. Keep the app open while exporting.`;
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
       const writer = new GifWriter(canvas.width, canvas.height, fps);
       let n = 0;
       const pitchType = drill.pitchType || 'full';
@@ -322,8 +343,8 @@
           const diagram = tweenFrames(drill.frames[i], drill.frames[i + 1], j / counts[i]);
           writer.frame(await drawExportFrame(ctx, diagram, pitchType, canvas));
           n++;
-          if (n % 3 === 0) {
-            hint.textContent = `Creating GIF: ${Math.round(100 * n / total)}% (${n}/${total} frames)`;
+          if (n % (exportPreset.label === 'UltraHD' ? 1 : 3) === 0) {
+            hint.textContent = `Creating ${exportPreset.label} GIF (${canvas.width} × ${canvas.height}): ${Math.round(100 * n / total)}% (${n}/${total} frames)`;
             // Yield to let the iPad update the progress label and remain responsive.
             await new Promise(resolve => setTimeout(resolve, 0));
           }
@@ -335,10 +356,10 @@
       const result = writer.finish();
       if (gifUrl) URL.revokeObjectURL(gifUrl);
       gifBlob = result;
-      gifFilename = `CoachTomAsh_${safeFilename(drill.name)}_${fps}FPS.gif`;
+      gifFilename = `CoachTomAsh_${safeFilename(drill.name)}_${exportPreset.label}_${canvas.width}x${canvas.height}_${fps}FPS.gif`;
       gifUrl = URL.createObjectURL(result);
       document.getElementById('gifPreview').src = gifUrl;
-      document.getElementById('gifInfo').textContent = `${drill.frames.length} keyframes · ${fps} FPS · ${(result.size / 1048576).toFixed(1)} MB. Save the file, or share it using the iPad share sheet.`;
+      document.getElementById('gifInfo').textContent = `${exportPreset.label} ${canvas.width} × ${canvas.height} · ${drill.frames.length} keyframes · ${fps} FPS · ${(result.size / 1048576).toFixed(1)} MB. Save to Files or share using the iPad share sheet.`;
       const canShare = typeof navigator.canShare === 'function' && navigator.canShare({files:[new File([gifBlob],gifFilename,{type:'image/gif'})]});
       document.getElementById('shareGif').hidden = !canShare;
       if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
