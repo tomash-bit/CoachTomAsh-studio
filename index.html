@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CoachTomAsh Studio v1.7 | Football Session Planner</title>
+<title>CoachTomAsh Studio v1.8 | Football Session Planner</title>
 <meta name="theme-color" content="#1A2B5F">
 <meta name="description" content="CoachTomAsh Studio: design, animate and plan football coaching practices in your own local-first workspace.">
 <link rel="icon" type="image/png" href="./icons/icon-192.png">
@@ -18,12 +18,13 @@
 
 
 <link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./live-coaching.css?v=180">
 <meta name="apple-mobile-web-app-title" content="CoachTomAsh Studio">
 </head>
 <body>
 <header class="app-head">
   <div class="brand"><div class="brand-lockup"><img class="brand-logo" src="./coach-tomash-logo.png" alt="CoachTomAsh logo"></div><div class="brand-details"><strong>STUDIO <span class="brand-chip">FOOTBALL PLANNER</span></strong><small>DESIGN • ANIMATE • PLAN • REFLECT</small></div></div>
-  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.7.1 • Ultra HD export</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
+  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.8 • Live Coaching + Ultra HD</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
 </header>
 <nav class="tabs" aria-label="Main navigation"><button class="tab active" data-tab="design">◈ Drill designer</button><button class="tab" data-tab="library">▦ My practice library</button><button class="tab" data-tab="session">▤ Session builder</button><button class="tab" data-tab="curriculum">▦ 10-week curriculum</button></nav>
 <section class="panel active" id="panel-design">
@@ -183,7 +184,7 @@
   <div class="library-grid" id="drillGrid"></div>
 </div></section>
 <section class="panel" id="panel-session"><div class="main-list">
-  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.7</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
+  <div class="list-toolbar"><div><h2>Advanced session builder <span class="version-chip">v1.8</span></h2><div class="hint">Save multiple sessions, organise practices, adjust individual activity times and print a CoachTomAsh plan.</div></div><div class="session-import-actions"><button class="btn primary" id="addStarterSessions" type="button">＋ Add 10 starter sessions</button><button class="btn dark" id="printSession" type="button">▤ Print / Save PDF</button></div></div>
   <div class="session-inline-callout" style="margin:12px 0">📚 <b>CoachTomAsh starter library:</b> 10 editable sessions and 30 example practices (U13–U16). Tap <b>Add 10 starter sessions</b> once to <b>merge</b> them with your existing library. No existing sessions are replaced.</div>
   <div class="session-workspace">
     <div class="card card-pad">
@@ -212,7 +213,7 @@
   <div class="session-library-head"><h3>My saved sessions</h3><span class="hint" id="sessionLibraryCount"></span></div>
   <div id="sessionSavedLibrary" class="session-catalogue-grid"></div>
 </div></section>
-<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.7</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
+<section class="panel" id="panel-curriculum"><div class="main-list"><div class="list-toolbar"><div><h2>10-week curriculum <span class="version-chip">v1.8</span></h2><div class="hint">Four programme blocks of 10 weeks. Arrange saved sessions and individual practices without duplicating them.</div></div><button id="currOpenSession" class="btn primary" type="button">Open current session</button></div>
   <div class="card card-pad v14-curr-toolbar"><div class="v14-curr-controls"><div><label for="currAge">Age group</label><select id="currAge" class="field"><option value="">All ages</option><option>U9</option><option>U10</option><option>U11</option><option>U12</option><option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option><option>Senior</option></select></div><div><label for="currBlock">Programme block</label><select id="currBlock" class="field"><option value="1">Block 1</option><option value="2">Block 2</option><option value="3">Block 3</option><option value="4">Block 4</option></select></div><div class="v14-curr-guidance">Select a week to place the <b>currently open session</b>. Individual practices appear when tagged in the Drill designer.</div></div>
     <div class="v14-curr-stats" id="currSummary"></div></div>
   <div id="curriculumGrid" class="v14-week-grid"></div>
@@ -242,5 +243,6 @@
 <script src="./storage-ui.js"></script>
 <script src="./animation-pro.js?v=170"></script>
 <script src="./uefa-a-up-back-through.js?v=171"></script>
+<script src="./live-coaching.js?v=180"></script>
 </body>
 </html>
