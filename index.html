@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CoachTomAsh Studio v1.8.2 | Football Session Planner</title>
+<title>CoachTomAsh Studio v1.9 | Coaching Review & Development</title>
 <meta name="theme-color" content="#1A2B5F">
 <meta name="description" content="CoachTomAsh Studio: design, animate and plan football coaching practices in your own local-first workspace.">
 <link rel="icon" type="image/png" href="./icons/icon-192.png">
@@ -19,12 +19,13 @@
 
 <link rel="stylesheet" href="./app.css">
 <link rel="stylesheet" href="./live-coaching.css?v=183">
+<link rel="stylesheet" href="./analytics.css?v=190">
 <meta name="apple-mobile-web-app-title" content="CoachTomAsh Studio">
 </head>
 <body>
 <header class="app-head">
   <div class="brand"><div class="brand-lockup"><img class="brand-logo" src="./coach-tomash-logo.png" alt="CoachTomAsh logo"></div><div class="brand-details"><strong>STUDIO <span class="brand-chip">FOOTBALL PLANNER</span></strong><small>DESIGN • ANIMATE • PLAN • REFLECT</small></div></div>
-  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.8.2 • Always-Visible Work / Rest Clocks + Ultra HD</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
+  <div class="head-right"><span class="tip">CoachTomAsh Studio v1.9 • Review & Development Analytics</span><button class="btn ghost install-action" id="installAppBtn" type="button" hidden>⬇ Install app</button><span class="storage-indicator" id="storageStatus" title="Local backups are being prepared">● Preparing local safety</span><button class="btn ghost" id="storageOpen" type="button">🛡 Data safety</button><button class="btn ghost" id="backupBtn">⬇ Back up library</button><button class="btn ghost" id="importBtn">⬆ Import backup</button><input id="fileInput" type="file" accept="application/json,.json" hidden><button class="btn primary" id="newBtn">+ New practice</button></div>
 </header>
 <nav class="tabs" aria-label="Main navigation"><button class="tab active" data-tab="design">◈ Drill designer</button><button class="tab" data-tab="library">▦ My practice library</button><button class="tab" data-tab="session">▤ Session builder</button><button class="tab" data-tab="curriculum">▦ 10-week curriculum</button></nav>
 <section class="panel active" id="panel-design">
@@ -245,5 +246,7 @@
 <script src="./uefa-a-up-back-through.js?v=171"></script>
 <script src="./live-timer-audio.js?v=183"></script>
 <script src="./live-coaching.js?v=183"></script>
+<script src="./analytics-core.js?v=190"></script>
+<script src="./analytics-ui.js?v=190"></script>
 </body>
 </html>
