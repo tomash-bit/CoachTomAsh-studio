@@ -1,0 +1,31 @@
+/* v1.12: restrained premium workspace. Core controls remain in the DOM. */
+#panel-design .workspace{grid-template-columns:88px minmax(0,1fr);gap:9px}
+#panel-design .palette-col.pro12-rail{padding:8px 5px;overflow:visible;max-height:none}
+#panel-design .pro12-rail .compact-categories{grid-template-columns:1fr;gap:5px}
+#panel-design .pro12-rail .compact-category{min-height:44px;font-size:17px}
+#panel-design .pro12-rail .tool-grid{display:none;position:absolute;top:12px;left:calc(100% + 8px);width:196px;max-height:65dvh;overflow:auto;grid-template-columns:repeat(2,minmax(0,1fr));padding:9px;background:white;border:1px solid #dce4ef;border-radius:12px;box-shadow:0 15px 36px #13233b33;z-index:35}
+#panel-design .pro12-rail.pro12-category-open .tool-grid{display:grid}
+#panel-design .pro12-rail .elite-colour-menu summary,#panel-design .pro12-rail .elite-object-menu summary{font-size:9px;padding:8px 3px;overflow-wrap:anywhere}
+#panel-design .pro12-rail .elite-colour-menu .form-row{position:absolute;top:100%;left:calc(100% + 7px);width:180px;padding:10px;background:white;box-shadow:0 14px 32px #12223d30;border-radius:12px;z-index:48}
+#panel-design .pro12-rail .elite-colour-menu:not([open]) .form-row{display:none}
+#panel-design .pro12-rail .elite-colour-menu{position:relative}
+#panel-design .pro12-rail .elite-colour-menu .color-swatches{grid-template-columns:repeat(5,1fr)}
+.pro12-snap{display:flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #dce3ee;border-radius:8px;background:white;color:#263858;font-size:11px;font-weight:650;white-space:nowrap}
+.pro12-snap input{accent-color:#1a2b5f}
+#panel-design .pro12-context{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid #dce4ef;background:#f8fafc}
+#panel-design .pro12-context[hidden]{display:none}
+#panel-design .pro12-context button{font:600 11px system-ui;border:1px solid #dce4ef;background:white;border-radius:7px;padding:6px 9px;color:#243756;min-height:31px}
+#panel-design .pro12-context .pro12-danger{color:#aa1932}
+#panel-design .pro12-selection{font-size:11px;font-weight:750;color:#1a2b5f;margin-right:6px}
+#panel-design .pro12-timeline{padding:6px 10px}
+#panel-design .pro12-timeline .frames-row{padding:0 0 4px}
+#panel-design .pro12-timeline .timeline-ui{margin-top:3px;padding:4px}
+#panel-design .pro12-timeline-more{border-top:1px solid #e1e7ef;margin-top:4px}
+#panel-design .pro12-timeline-more>summary{cursor:pointer;padding:6px 2px;font-size:11px;color:#425674;font-weight:650}
+#panel-session .pro12-bank{display:grid;grid-template-columns:1fr;gap:4px;max-height:260px}
+#panel-session .pro12-bank .session-bank-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;min-height:48px}
+#panel-session .pro12-bank .session-bank-item p{margin:2px 0 0;font-size:10px}
+#panel-session .pro12-quick-add{margin:6px 0}
+#panel-session .session-activity{padding:6px 8px}
+@media(max-width:950px){#panel-design .workspace{grid-template-columns:76px minmax(0,1fr)}}
+@media(max-width:620px){#panel-design .workspace{grid-template-columns:minmax(0,1fr)}#panel-design .palette-col.pro12-rail{position:relative}#panel-design .pro12-rail .compact-categories{grid-template-columns:repeat(4,1fr)}#panel-design .pro12-rail.pro12-category-open .tool-grid{position:relative;top:auto;left:auto;width:auto;max-height:160px;grid-template-columns:repeat(4,minmax(0,1fr))}#panel-design .pro12-rail .elite-colour-menu .form-row{left:0;top:100%;width:min(280px,85vw)}#panel-design .pro12-context{gap:3px}#panel-design .pro12-context button{padding:6px}}

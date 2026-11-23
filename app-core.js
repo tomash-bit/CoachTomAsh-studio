@@ -61,6 +61,11 @@ function goalHalfExtents(type,angle=0,scale=1){
           y:Math.abs(Math.sin(a))*w+Math.abs(Math.cos(a))*h};
 }
 function limitItemPosition(pos,type,angle=0,scale=1){
+  // Optional v1.12 precision grid. Default is OFF, preserving legacy placement.
+  if(globalThis.CoachPrecision?.enabled && ['player','opponent','neutral','ball','cone','mannequin','goal','fullgoal','text'].includes(type)){
+    const step=globalThis.CoachPrecision.step||2;
+    pos={x:Math.round(pos.x/step)*step,y:Math.round(pos.y/step)*step};
+  }
   // Balls may travel completely beyond the touchline and goal line, including into a goal.
   // Keep the entire 12px-radius ball within the visible SVG run-off area.
   // The playable pitch (0..100) is deliberately NOT a boundary for the ball.
