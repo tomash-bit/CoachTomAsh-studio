@@ -44,6 +44,44 @@
  const filters=document.querySelector('.session-bank-controls');if(filters)holder.append(filters);
  holder.append(bank);
  }
- // Escape closes details without mutating the underlying practice.
+ // v1.11.1: premium rail and progressive-disclosure menus; preserve original elements/listeners.
+ const toolIcons={select:'↖',player:'●',opponent:'●',neutral:'◉',ball:'⚽',cone:'▲',goal:'▯',fullgoal:'▤',mannequin:'♙',zone:'▧',text:'T',move:'➜',pass:'⟶',dribble:'⇢',press:'↝','curve-pass':'↷','curve-move':'⤴'};
+ document.querySelectorAll('#toolGrid [data-tool]').forEach(b=>{
+   const original=b.textContent.trim();b.title=original;b.setAttribute('aria-label',original);
+   b.innerHTML='<span class="elite-tool-icon" aria-hidden="true">'+(toolIcons[b.dataset.tool]||'•')+'</span><span class="elite-tool-label">'+original.replace(/^[^A-Za-z]+/,'').trim()+'</span>';
+ });
+ const catIcons={players:'◉',equipment:'▱',actions:'➜',all:'▦'};
+ document.querySelectorAll('.compact-category').forEach(b=>{
+  const label=b.textContent.trim();b.title=label;b.setAttribute('aria-label',label);
+  b.innerHTML='<span aria-hidden="true">'+catIcons[b.dataset.category]+'</span><small>'+label+'</small>';
+ });
+ const head=palette.querySelector('.section-head');
+ if(head){head.querySelector('h2').textContent='CREATE';}
+ const swatches=$('swatches');
+ if(swatches){
+   const originalRow=swatches.closest('.form-row');
+   const colours=document.createElement('details');colours.className='elite-colour-menu';
+   const colourSummary=document.createElement('summary');colourSummary.innerHTML='<span class="elite-colour-dot" id="eliteColourDot"></span><span>Colours</span><span class="elite-chevron">⌄</span>';
+   colours.append(colourSummary);colours.append(originalRow);
+   palette.insertBefore(colours,document.querySelector('#toolGrid').nextSibling);
+   const dot=$('eliteColourDot');
+   const updateColour=()=>{const selected=swatches.querySelector('.active,.selected,[aria-pressed="true"]');dot.style.background=selected?.dataset.color||'#1a2b5f'};
+   swatches.addEventListener('click',()=>requestAnimationFrame(updateColour));updateColour();
+   document.addEventListener('click',e=>{if(colours.open&&!colours.contains(e.target))colours.open=false});
+ }
+ const objectMenu=document.createElement('details');objectMenu.className='elite-object-menu';
+ objectMenu.innerHTML='<summary>⚙ Object & formation settings <span>⌄</span></summary>';
+ const grid=$('toolGrid');
+ // Move, never clone: existing event handlers and DOM IDs remain intact.
+ let next=grid.nextElementSibling;
+ while(next){const following=next.nextElementSibling;if(next!==objectMenu && !next.classList.contains('elite-colour-menu'))objectMenu.append(next);next=following;}
+ palette.append(objectMenu);
+ // Contextual object editing is always accessible through a compact menu.
+ const observer=new MutationObserver(()=>{
+  const active=[...objectMenu.querySelectorAll('#rotationPanel,#goalSizePanel,#curvePanel')].some(x=>!x.hidden);
+  if(active)objectMenu.classList.add('elite-has-selection');else objectMenu.classList.remove('elite-has-selection');
+ });
+ ['rotationPanel','goalSizePanel','curvePanel'].forEach(id=>{const el=$(id);if(el)observer.observe(el,{attributes:true,attributeFilter:['hidden']})});
+  // Escape closes details without mutating the underlying practice.
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&notes.classList.contains('compact-details-open'))setDetails(false)});
 })();
