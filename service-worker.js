@@ -1,6 +1,6 @@
 /* CoachTomAsh Studio 1.5: versioned offline application shell.
    User practices remain in localStorage/IndexedDB, never in Cache Storage. */
-const CACHE_NAME = 'coachtomash-studio-assets-v1-10-coaching-intelligence';
+const CACHE_NAME = 'coachtomash-studio-assets-v1-11-compact-workspace';
 const APP_FILES = [
  './', './index.html', './app.css', './coach-tomash-logo.png',
  './storage-engine.js', './app-core.js', './pwa-install.js',
@@ -8,6 +8,7 @@ const APP_FILES = [
  './pro-editor.js?v=164', './animation-pro.js?v=170', './uefa-a-up-back-through.js?v=171', './multi-select.js', './storage-ui.js', './manifest.webmanifest',
  './live-timer-audio.js?v=183', './live-coaching.js?v=183', './live-coaching.css?v=183',
  './analytics-core.js?v=190', './analytics-ui.js?v=190', './analytics.css?v=190', './insights-core.js?v=1100', './insights-ui.js?v=1100', './insights.css?v=1100',
+ './compact-workspace.js?v=1110', './compact-workspace.css?v=1110',
  './icons/icon-192.png','./icons/icon-512.png',
  './icons/icon-maskable-512.png','./icons/apple-touch-icon.png'
 ];
