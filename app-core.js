@@ -61,6 +61,13 @@ function goalHalfExtents(type,angle=0,scale=1){
           y:Math.abs(Math.sin(a))*w+Math.abs(Math.cos(a))*h};
 }
 function limitItemPosition(pos,type,angle=0,scale=1){
+  // Balls may travel completely beyond the touchline and goal line, including into a goal.
+  // Keep the entire 12px-radius ball within the visible SVG run-off area.
+  // The playable pitch (0..100) is deliberately NOT a boundary for the ball.
+  if(type==='ball')return {
+    x:clamp(pos.x,(CANVAS_EDGE.left+12-70)/8.6,(CANVAS_EDGE.right-12-70)/8.6),
+    y:clamp(pos.y,(CANVAS_EDGE.top+12-65)/5.2,(CANVAS_EDGE.bottom-12-65)/5.2)
+  };
   if(type!=='goal'&&type!=='fullgoal')return {x:clamp(pos.x,0,100),y:clamp(pos.y,0,100)};
   const half=goalHalfExtents(type,angle,scale),safe=7;
   return {

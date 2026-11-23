@@ -82,3 +82,26 @@
 #panel-design .pitch-svg{max-height:55dvh}
 @media(max-width:950px){#panel-design .workspace{grid-template-columns:104px minmax(0,1fr);gap:7px;padding:7px}}
 @media(max-width:620px){#panel-design .workspace{grid-template-columns:minmax(0,1fr)}#panel-design .palette-col{max-height:none;overflow:visible}#panel-design .compact-categories{grid-template-columns:repeat(4,1fr)}#panel-design .palette-col .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))}#panel-design .elite-colour-menu .color-swatches{grid-template-columns:repeat(8,1fr)}#panel-design .pitch-svg{max-height:45dvh}}
+
+/* v1.11.2: settings are an overlay, never an expanding sidebar. */
+#panel-design .palette-col{overflow:visible!important;position:relative;z-index:12}
+#panel-design .elite-object-menu{position:relative}
+#panel-design .elite-object-menu[open]{z-index:40}
+#panel-design .elite-object-menu[open]>:not(summary){box-sizing:border-box}
+#panel-design .elite-object-menu[open]{background:#fff;border-color:#cbd5e1;box-shadow:0 12px 32px #10203d24}
+#panel-design .elite-object-menu[open]::after{content:'';position:absolute;inset:100% 0 auto;pointer-events:none}
+#panel-design .elite-object-menu .elite-settings-content{position:absolute;top:calc(100% + 6px);left:0;width:min(360px,calc(100vw - 36px));max-height:min(68dvh,560px);overflow-y:auto;overscroll-behavior:contain;background:#fff;border:1px solid #dbe3ee;border-radius:12px;padding:12px;box-shadow:0 18px 48px #0c1d3840;z-index:45;scrollbar-width:thin}
+#panel-design .elite-object-menu:not([open]) .elite-settings-content{display:none}
+#panel-design .elite-object-menu .elite-settings-content>*{margin:8px 0;max-width:100%;box-sizing:border-box}
+@media(max-width:620px){#panel-design .elite-object-menu .elite-settings-content{position:fixed;left:12px;right:12px;top:12dvh;width:auto;max-height:76dvh;z-index:80}}
+
+/* v1.11.2: genuinely compact task-based settings menu. */
+#panel-design .elite-object-menu .elite-settings-content{width:min(310px,calc(100vw - 32px));max-height:min(52dvh,420px);padding:9px;overflow:auto;}
+#panel-design .elite-settings-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;position:sticky;top:-9px;background:#fff;padding:5px 0 9px;z-index:3;border-bottom:1px solid #e7ebf2;}
+#panel-design .elite-settings-tab{min-height:38px;border:1px solid #e1e6ee;border-radius:7px;background:#f6f8fb;color:#4b5b72;font-size:11px;font-weight:750;cursor:pointer;}
+#panel-design .elite-settings-tab.active{background:#1a2b5f;color:#fff;border-color:#1a2b5f;}
+#panel-design .elite-settings-section[hidden]{display:none!important}
+#panel-design .elite-settings-section>*{margin:8px 0;max-width:100%;box-sizing:border-box}
+#panel-design .elite-settings-section .hint,#panel-design .elite-settings-section .notice{font-size:10px;line-height:1.35;padding:6px}
+#panel-design .elite-settings-section .formation-team-card{padding:8px}
+@media(max-width:620px){#panel-design .elite-object-menu .elite-settings-content{top:10dvh;max-height:65dvh;width:auto;left:12px;right:12px;}}

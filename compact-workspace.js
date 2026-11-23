@@ -76,6 +76,27 @@
  let next=grid.nextElementSibling;
  while(next){const following=next.nextElementSibling;if(next!==objectMenu && !next.classList.contains('elite-colour-menu'))objectMenu.append(next);next=following;}
  palette.append(objectMenu);
+ // Keep all original settings elements (and their listeners) in one scrollable overlay.
+ const settingsContent=document.createElement('div');settingsContent.className='elite-settings-content';
+ [...objectMenu.children].filter(el=>el.tagName!=='SUMMARY').forEach(el=>settingsContent.append(el));
+ objectMenu.append(settingsContent);
+ // Compact segmented settings: show one task at a time, not every editor control.
+ const groups=[
+  {id:'object',label:'Object',match:el=>el.id==='rotationPanel'||el.id==='goalSizePanel'||el.id==='curvePanel'||el.id==='multiSelectPanel'||el.classList.contains('bottom-actions')||el.classList.contains('form-row')&&!!el.querySelector('#objectLabel')||el.classList.contains('subheading')&&/selected player/i.test(el.textContent)},
+  {id:'formations',label:'Teams',match:el=>el.id==='formationPanel'||el.classList.contains('formation-help')},
+  {id:'pitch',label:'Pitch',match:el=>el.querySelector?.('#pitchType')||el.querySelector?.('#pitchTheme')||el.classList.contains('v14-pitch-note')||el.classList.contains('notice')||el.classList.contains('subheading')&&/pitch setup/i.test(el.textContent)}
+ ];
+ const sections={};const tabs=document.createElement('div');tabs.className='elite-settings-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Settings category');
+ groups.forEach(g=>{const section=document.createElement('section');section.className='elite-settings-section';section.dataset.settingsGroup=g.id;sections[g.id]=section;
+ const tab=document.createElement('button');tab.type='button';tab.className='elite-settings-tab';tab.textContent=g.label;tab.dataset.settingsTab=g.id;tab.setAttribute('role','tab');tabs.append(tab);});
+ const orphan=[];[...settingsContent.children].forEach(el=>{const group=groups.find(g=>g.match(el));if(group)sections[group.id].append(el);else orphan.push(el);});
+ orphan.forEach(el=>sections.object.append(el));
+ settingsContent.prepend(tabs);groups.forEach(g=>settingsContent.append(sections[g.id]));
+ function showSettingsTab(id){groups.forEach(g=>{sections[g.id].hidden=g.id!==id;const tab=tabs.querySelector('[data-settings-tab="'+g.id+'"]');tab.classList.toggle('active',g.id===id);tab.setAttribute('aria-selected',String(g.id===id));});}
+ tabs.addEventListener('click',e=>{const tab=e.target.closest('[data-settings-tab]');if(tab)showSettingsTab(tab.dataset.settingsTab)});
+ showSettingsTab('object');
+ objectMenu.querySelector('summary').setAttribute('aria-label','Open compact object and formation settings');
+ document.addEventListener('pointerdown',e=>{if(objectMenu.open&&!objectMenu.contains(e.target))objectMenu.open=false;});
  // Contextual object editing is always accessible through a compact menu.
  const observer=new MutationObserver(()=>{
   const active=[...objectMenu.querySelectorAll('#rotationPanel,#goalSizePanel,#curvePanel')].some(x=>!x.hidden);
